@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, Alert, StyleSheet } from 'react-native';
-import { signUp } from './authService';
+import { 
+  View, 
+  TextInput, 
+  Text, 
+  Alert, 
+  StyleSheet, 
+  ActivityIndicator,
+  TouchableOpacity,
+  Platform,
+  KeyboardAvoidingView,
+  ScrollView,
+  SafeAreaView
+} from 'react-native';
+import { signUp } from '@/auth/authService';
 
 export default function RegisterScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -54,86 +66,129 @@ export default function RegisterScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Crear nueva cuenta</Text>
-      
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      
-      <TextInput
-        placeholder="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={styles.input}
-      />
-      
-      <TextInput
-        placeholder="Contraseña"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      
-      <TextInput
-        placeholder="Confirmar contraseña"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      
-      <Button
-        title={loading ? "Registrando..." : "Registrarse"}
-        onPress={handleRegister}
-        disabled={loading}
-      />
-      
-      <View style={styles.loginLink}>
-        <Text>¿Ya tienes una cuenta? </Text>
-        <Text 
-          style={styles.linkText}
-          onPress={() => navigation.navigate('Login')}
-        >
-          Iniciar sesión
-        </Text>
-      </View>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          <Text style={styles.title}>Crear nueva cuenta</Text>
+          
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          
+          <TextInput
+            placeholder="Correo electrónico"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={styles.input}
+            editable={!loading}
+          />
+          
+          <TextInput
+            placeholder="Contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            style={styles.input}
+            editable={!loading}
+          />
+          
+          <TextInput
+            placeholder="Confirmar contraseña"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            style={styles.input}
+            editable={!loading}
+          />
+          
+          {loading ? (
+            <ActivityIndicator size="large" color="#841584" style={styles.loader} />
+          ) : (
+            <TouchableOpacity 
+              style={styles.registerButton}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              <Text style={styles.registerButtonText}>Registrarse</Text>
+            </TouchableOpacity>
+          )}
+          
+          <View style={styles.loginLink}>
+            <Text>¿Ya tienes una cuenta? </Text>
+            <TouchableOpacity onPress={() => navigation.replace('Login')}>
+              <Text style={styles.linkText}>Iniciar sesión</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: '#f8f8f8',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollView: {
+    flexGrow: 1,
     justifyContent: 'center',
+    padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 30,
     textAlign: 'center',
+    color: '#333',
   },
   input: {
-    height: 40,
+    height: 50,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
+    borderColor: '#ddd',
+    borderRadius: 8,
     marginBottom: 16,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'white',
+    fontSize: 16,
+  },
+  registerButton: {
+    backgroundColor: '#841584',
+    borderRadius: 8,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  registerButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  loader: {
+    marginVertical: 20,
   },
   errorText: {
-    color: 'red',
-    marginBottom: 10,
+    color: '#d32f2f',
+    marginBottom: 15,
+    textAlign: 'center',
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 4,
   },
   loginLink: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 30,
   },
   linkText: {
-    color: 'blue',
-    textDecorationLine: 'underline',
+    color: '#841584',
+    fontWeight: 'bold',
   }
 }); 

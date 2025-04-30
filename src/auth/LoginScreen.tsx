@@ -14,8 +14,8 @@ import {
   ScrollView,
   SafeAreaView
 } from 'react-native';
-import { isUserLoggedInOffline } from './authService';
-import { supabase } from '../api/supabaseClient';
+import { isUserLoggedInOffline } from '@/auth/authService';
+import { supabase } from '@/api/supabaseClient';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -160,18 +160,12 @@ export default function LoginScreen({ navigation }: any) {
             </TouchableOpacity>
           )}
           
-          <TouchableOpacity 
-            style={styles.networkCheckButton}
-            onPress={checkNetwork}
-          >
-            <Text style={styles.networkCheckText}>Verificar conexión</Text>
-          </TouchableOpacity>
           
           <View style={styles.registerContainer}>
             <Text>¿No tienes una cuenta? </Text>
             <Text 
               style={styles.registerLink}
-              onPress={() => navigation.navigate('Register')}
+              onPress={() => navigation.replace('Register')}
             >
               Regístrate
             </Text>

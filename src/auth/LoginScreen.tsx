@@ -1,37 +1,267 @@
 // src/auth/LoginScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Text, Alert } from 'react-native';
-import { login, isUserLoggedInOffline } from './authService';
+import { 
+  View, 
+  TextInput, 
+  Button, 
+  Text, 
+  Alert, 
+  StyleSheet, 
+  ActivityIndicator,
+  TouchableOpacity,
+  Platform,
+  KeyboardAvoidingView,
+  ScrollView,
+  SafeAreaView
+} from 'react-native';
+import { isUserLoggedInOffline } from './authService';
+import { supabase } from '../api/supabaseClient';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [networkOk, setNetworkOk] = useState<boolean | null>(null);
 
   useEffect(() => {
-    (async () => {
+    checkOfflineLogin();
+    checkNetwork();
+  }, []);
+
+  const checkOfflineLogin = async () => {
+    try {
       const loggedIn = await isUserLoggedInOffline();
       if (loggedIn) {
         Alert.alert('Modo sin conexión', 'Ingresando con sesión guardada');
         navigation.replace('Settings');
       }
-    })();
-  }, []);
+    } catch (error) {
+      console.error('Error comprobando sesión guardada:', error);
+    }
+  };
+
+  const checkNetwork = async () => {
+    try {
+      const response = await fetch('https://jsonplaceholder.typicode.com/todos/1');
+      setNetworkOk(response.ok);
+    } catch (error) {
+      console.log('Error de red:', error);
+      setNetworkOk(false);
+    }
+  };
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMessage('Por favor, ingresa correo y contraseña');
+      return;
+    }
+
+    if (!networkOk) {
+      Alert.alert(
+        'Sin conexión a internet',
+        'Parece que no tienes conexión a internet. ¿Quieres intentar iniciar sesión de todos modos?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Intentar', onPress: () => performLogin() },
+        ]
+      );
+    } else {
+      performLogin();
+    }
+  };
+
+  const performLogin = async () => {
+    setLoading(true);
+    setErrorMessage('');
+
     try {
-      await login(email, password);
-      Alert.alert('Éxito', 'Sesión iniciada');
-      navigation.replace('Settings');
+      // Usando directamente supabase aquí para evitar capas adicionales que podrían fallar
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data && data.user) {
+        // Guardamos en el servicio
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+
+        navigation.replace('Settings');
+      }
     } catch (error: any) {
-      Alert.alert('Error de login', error.message);
+      console.error('Error de inicio de sesión:', error);
+      
+      if (error.message.includes('network')) {
+        setErrorMessage('Error de conexión. Verifica tu internet.');
+      } else if (error.message.includes('Invalid login')) {
+        setErrorMessage('Correo o contraseña incorrectos');
+      } else {
+        setErrorMessage(error.message || 'Error al iniciar sesión');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View>
-      <TextInput placeholder="Correo" value={email} onChangeText={setEmail} />
-      <TextInput placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
-      <Button title="Iniciar sesión" onPress={handleLogin} />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          <Text style={styles.title}>Patmos App</Text>
+          
+          {networkOk === false && (
+            <View style={styles.networkWarning}>
+              <Text style={styles.networkWarningText}>
+                ⚠️ Sin conexión a internet
+              </Text>
+            </View>
+          )}
+
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
+          
+          <TextInput 
+            placeholder="Correo electrónico" 
+            value={email} 
+            onChangeText={setEmail}
+            style={styles.input}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
+          
+          <TextInput 
+            placeholder="Contraseña" 
+            secureTextEntry 
+            value={password} 
+            onChangeText={setPassword}
+            style={styles.input}
+            editable={!loading}
+          />
+          
+          {loading ? (
+            <ActivityIndicator size="large" color="#841584" style={styles.loader} />
+          ) : (
+            <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+            </TouchableOpacity>
+          )}
+          
+          <TouchableOpacity 
+            style={styles.networkCheckButton}
+            onPress={checkNetwork}
+          >
+            <Text style={styles.networkCheckText}>Verificar conexión</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.registerContainer}>
+            <Text>¿No tienes una cuenta? </Text>
+            <Text 
+              style={styles.registerLink}
+              onPress={() => navigation.navigate('Register')}
+            >
+              Regístrate
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f8f8',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollView: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
+    color: '#333',
+  },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+    backgroundColor: 'white',
+    fontSize: 16,
+  },
+  loginButton: {
+    backgroundColor: '#841584',
+    borderRadius: 8,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  loginButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  loader: {
+    marginVertical: 20,
+  },
+  errorText: {
+    color: '#d32f2f',
+    marginBottom: 15,
+    textAlign: 'center',
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 4,
+  },
+  registerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 30,
+  },
+  registerLink: {
+    color: '#841584',
+    fontWeight: 'bold',
+  },
+  networkWarning: {
+    backgroundColor: '#fff3cd',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  networkWarningText: {
+    color: '#856404',
+  },
+  networkCheckButton: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  networkCheckText: {
+    color: '#666',
+    textDecorationLine: 'underline',
+  },
+});
+

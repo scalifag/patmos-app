@@ -23,6 +23,7 @@ type RootStackParamList = {
   SeriesNumeracion: undefined;
   PersonalizarListView: undefined;
   FlujosAutorizacion: undefined;
+  SyncCompany: undefined;
 };
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -82,7 +83,7 @@ export default function SettingsScreen() {
       title: 'Configuración General',
       data: [
         { title: 'Almacenes', icon: 'warehouse', screen: 'Almacenes' },
-        { title: 'Usuarios', icon: 'group', screen: 'Usuarios' },
+        { title: 'Usuarios', icon: 'supervised-user-circle', screen: 'Usuarios' },
         { title: 'Listas de Precios', icon: 'local-offer', screen: 'ListasPrecios' },
         { title: 'Series de Numeración', icon: 'confirmation-number', screen: 'SeriesNumeracion' },
       ]

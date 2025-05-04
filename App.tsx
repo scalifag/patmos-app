@@ -6,6 +6,7 @@ import LoginScreen from './src/auth/LoginScreen';
 import RegisterScreen from './src/auth/RegisterScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
 import CompaniasScreen from '@/screens/CompaniasScreen';
+import SyncCompanyScreen from '@/screens/SyncCompanyScreen';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +22,14 @@ export default function App() {
           component={CompaniasScreen}
           options={{ 
             title: 'Compañías',
+            headerBackTitle: 'Atrás' 
+          }}
+        />
+        <Stack.Screen 
+          name="SyncCompany" 
+          component={SyncCompanyScreen}
+          options={{ 
+            title: 'Sincronizar compañía',
             headerBackTitle: 'Atrás' 
           }}
         />

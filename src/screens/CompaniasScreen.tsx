@@ -10,16 +10,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { supabase } from '@/api/supabaseClient';
-
-// Tipo para una compañía
-type Company = {
-  id: string;
-  name: string;
-  databaseName: string;
-  lastSyncDate: string;
-  isActive: boolean;
-};
+import { getCompanies, Company } from '@/utils/companyService';
 
 export default function CompaniasScreen() {
   const navigation = useNavigation();
@@ -28,10 +19,8 @@ export default function CompaniasScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const handleSyncNewCompany = () => {
-    // Abrir flujo para sincronizar una nueva compañía
-    Alert.alert('Sincronizar', 'Iniciar proceso de sincronización de nueva compañía');
-    // En un caso real, se navegaría a un formulario o flujo de sincronización
-    // navigation.navigate('SyncNewCompany');
+    // Navegar a la pantalla de sincronización de compañía
+    navigation.navigate('SyncCompany' as never);
   };
 
   // Configuramos el botón de sincronización en el header
@@ -48,7 +37,7 @@ export default function CompaniasScreen() {
     });
   }, [navigation]);
 
-  // Simulando datos para demostración
+  // Cargamos las compañías
   useEffect(() => {
     fetchCompanies();
   }, []);
@@ -56,37 +45,12 @@ export default function CompaniasScreen() {
   const fetchCompanies = async () => {
     setLoading(true);
     try {
-      // En un caso real, esta sería una llamada a la API
-      // const { data, error } = await supabase.from('companies').select('*');
-      
-      // Simulando datos para demostración
-      const mockData: Company[] = [
-        {
-          id: '1',
-          name: 'Empresa Principal SAS',
-          databaseName: 'PRINCIPAL_DB',
-          lastSyncDate: '2023-11-15T10:30:00',
-          isActive: true
-        },
-        {
-          id: '2',
-          name: 'Sucursal Norte',
-          databaseName: 'NORTE_DB',
-          lastSyncDate: '2023-11-10T08:45:00',
-          isActive: true
-        },
-        {
-          id: '3',
-          name: 'Distribuidora Central',
-          databaseName: 'CENTRAL_DB',
-          lastSyncDate: '2023-10-28T14:20:00',
-          isActive: false
-        }
-      ];
+      // Obtener las compañías guardadas
+      const savedCompanies = await getCompanies();
       
       // Simulando un retraso de red
       setTimeout(() => {
-        setCompanies(mockData);
+        setCompanies(savedCompanies);
         setLoading(false);
         setRefreshing(false);
       }, 800);

@@ -5,11 +5,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 // Screens
 import SettingsScreen from '@/screens/SettingsScreen';
 import CompaniasScreen from '@/screens/CompaniasScreen';
+import SyncCompanyScreen from '@/screens/SyncCompanyScreen';
 
 // Define types for the navigation stack parameters
 export type RootStackParamList = {
   Settings: undefined;
   Compañias: undefined;
+  SyncCompany: undefined;
   // Add other screens here
 };
 
@@ -48,6 +50,14 @@ export default function Navigation() {
           component={CompaniasScreen}
           options={{ 
             title: 'Compañías',
+            headerBackTitle: 'Atrás' 
+          }}
+        />
+        <Stack.Screen 
+          name="SyncCompany" 
+          component={SyncCompanyScreen}
+          options={{ 
+            title: 'Sincronizar compañía',
             headerBackTitle: 'Atrás' 
           }}
         />

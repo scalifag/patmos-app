@@ -104,18 +104,22 @@ export default function EditCompanyScreen() {
       headerRight: () => (
         <TouchableOpacity 
           style={styles.deleteIcon} 
-          onPress={handleDeleteCompany}
+          onPress={company?.isActive ? handleDeleteCompany : handleActivateCompany}
           disabled={deleting || loading}
         >
           {deleting ? (
             <ActivityIndicator size="small" color="#e53935" />
           ) : (
-            <MaterialIcons name="delete" size={24} color="#e53935" />
+            <MaterialIcons 
+              name={company?.isActive ? "cloud-off" : "cloud-done"} 
+              size={24} 
+              color={company?.isActive ? "#e53935" : "#4CAF50"} 
+            />
           )}
         </TouchableOpacity>
       ),
     });
-  }, [navigation, deleting, loading]);
+  }, [navigation, deleting, loading, company?.isActive]);
 
   const handleTestAndUpdateConnection = async () => {
     // Validar datos
@@ -191,12 +195,12 @@ export default function EditCompanyScreen() {
 
   const handleDeleteCompany = () => {
     Alert.alert(
-      "Eliminar compañía",
-      "¿Está seguro que desea eliminar esta compañía? Esta acción no puede deshacerse.",
+      "Inactivar compañía",
+      "¿Está seguro que desea inactivar esta compañía?",
       [
         { text: "Cancelar", style: "cancel" },
         { 
-          text: "Eliminar", 
+          text: "Inactivar", 
           style: "destructive",
           onPress: confirmDeleteCompany
         }
@@ -204,24 +208,84 @@ export default function EditCompanyScreen() {
     );
   };
 
-  const confirmDeleteCompany = async () => {
+  const handleActivateCompany = () => {
+    Alert.alert(
+      "Activar compañía",
+      "¿Está seguro que desea activar esta compañía?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Activar", 
+          style: "default",
+          onPress: confirmActivateCompany
+        }
+      ]
+    );
+  };
+
+  const confirmActivateCompany = async () => {
     if (!company) return;
     
     setDeleting(true);
     try {
-      const success = await deleteCompany(company.id);
+      const updatedCompany = {
+        ...company,
+        isActive: true,
+        lastSyncDate: new Date().toISOString()
+      };
+      
+      const success = await updateCompany(updatedCompany);
       
       if (success) {
+        setCompany(updatedCompany);
         Alert.alert(
-          "Compañía eliminada",
-          "La compañía ha sido eliminada correctamente",
+          "Compañía Activada",
+          "La compañía ha sido activada correctamente",
           [{ 
             text: "OK", 
             onPress: () => navigation.goBack()
           }]
         );
       } else {
-        throw new Error('No se pudo eliminar la compañía');
+        throw new Error('No se pudo activar la compañía');
+      }
+    } catch (error: any) {
+      console.error('Error:', error);
+      Alert.alert(
+        "Error",
+        `${error.message || 'Error desconocido'}`,
+        [{ text: "OK" }]
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const confirmDeleteCompany = async () => {
+    if (!company) return;
+    
+    setDeleting(true);
+    try {
+      const updatedCompany = {
+        ...company,
+        isActive: false,
+        lastSyncDate: new Date().toISOString()
+      };
+      
+      const success = await updateCompany(updatedCompany);
+      
+      if (success) {
+        setCompany(updatedCompany);
+        Alert.alert(
+          "Compañía Inactivada",
+          "La compañía ha sido inactivada correctamente",
+          [{ 
+            text: "OK", 
+            onPress: () => navigation.goBack()
+          }]
+        );
+      } else {
+        throw new Error('No se pudo inactivar la compañía');
       }
     } catch (error: any) {
       console.error('Error:', error);

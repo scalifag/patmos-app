@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  SafeAreaView
+  SafeAreaView,
+  Switch
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { testConnection, createCompanyData, saveCompany } from '@/utils/companyService';
+import { testConnection, createCompanyData, saveCompany, checkCompanyExists } from '@/utils/companyService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Valores predeterminados para desarrollo
+const DEV_VALUES = {
+  url: 'netsuite.tecnicaelectromedica.co',
+  port: '61059',
+  username: 'manager',
+  company: 'TEM_PROD1'
+};
+
+// Claves para almacenamiento
+const DEV_MODE_KEY = 'patmos_dev_mode_enabled';
+const LAST_CONNECTION_KEY = 'patmos_last_connection';
 
 export default function SyncCompanyScreen() {
   const navigation = useNavigation();
@@ -24,6 +38,89 @@ export default function SyncCompanyScreen() {
   const [password, setPassword] = useState('');
   const [company, setCompany] = useState('');
   const [loading, setLoading] = useState(false);
+  const [devMode, setDevMode] = useState(false);
+  const [savedValuesExist, setSavedValuesExist] = useState(false);
+
+  useEffect(() => {
+    loadDevModeStatus();
+    checkForSavedValues();
+  }, []);
+
+  // Carga el estado del modo de desarrollo
+  const loadDevModeStatus = async () => {
+    try {
+      const savedDevMode = await AsyncStorage.getItem(DEV_MODE_KEY);
+      if (savedDevMode === 'true') {
+        setDevMode(true);
+        // Si el modo dev está activado, cargamos los valores predeterminados
+        setDevValues();
+      }
+    } catch (error) {
+      console.error('Error al cargar el estado del modo de desarrollo:', error);
+    }
+  };
+
+  // Verifica si hay valores guardados de la última conexión
+  const checkForSavedValues = async () => {
+    try {
+      const savedConnection = await AsyncStorage.getItem(LAST_CONNECTION_KEY);
+      if (savedConnection) {
+        setSavedValuesExist(true);
+      }
+    } catch (error) {
+      console.error('Error al verificar valores guardados:', error);
+    }
+  };
+
+  // Establece los valores de desarrollo predeterminados
+  const setDevValues = () => {
+    setUrl(DEV_VALUES.url);
+    setPort(DEV_VALUES.port);
+    setUsername(DEV_VALUES.username);
+    setCompany(DEV_VALUES.company);
+  };
+
+  // Guarda o carga la última conexión exitosa
+  const handleLastConnection = async (action: 'save' | 'load') => {
+    try {
+      if (action === 'save') {
+        const connectionData = {
+          url,
+          port,
+          username,
+          password,
+          company
+        };
+        await AsyncStorage.setItem(LAST_CONNECTION_KEY, JSON.stringify(connectionData));
+        setSavedValuesExist(true);
+      } else if (action === 'load') {
+        const savedConnection = await AsyncStorage.getItem(LAST_CONNECTION_KEY);
+        if (savedConnection) {
+          const data = JSON.parse(savedConnection);
+          setUrl(data.url);
+          setPort(data.port);
+          setUsername(data.username);
+          setPassword(data.password);
+          setCompany(data.company);
+        }
+      }
+    } catch (error) {
+      console.error('Error con la última conexión:', error);
+    }
+  };
+
+  // Cambia el estado del modo de desarrollo
+  const toggleDevMode = async (value: boolean) => {
+    setDevMode(value);
+    try {
+      await AsyncStorage.setItem(DEV_MODE_KEY, value ? 'true' : 'false');
+      if (value) {
+        setDevValues();
+      }
+    } catch (error) {
+      console.error('Error al guardar el estado del modo de desarrollo:', error);
+    }
+  };
 
   const handleTestAndSaveConnection = async () => {
     // Validar datos
@@ -31,6 +128,19 @@ export default function SyncCompanyScreen() {
 
     setLoading(true);
     try {
+      // Formar la URL completa para validación
+      let fullUrl = url.trim();
+      if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+        fullUrl = `https://${fullUrl}`;
+      }
+      const serviceLayerUrl = `${fullUrl}:${port}`;
+
+      // Verificar si ya existe una compañía con los mismos datos
+      const exists = await checkCompanyExists(serviceLayerUrl, company);
+      if (exists) {
+        throw new Error('Ya existe una compañía con la misma URL, puerto y nombre de base de datos');
+      }
+
       const connectionSuccess = await testConnection(
         url,
         port,
@@ -44,13 +154,6 @@ export default function SyncCompanyScreen() {
       }
 
       // Si la conexión es exitosa, continuar con guardar
-      // Formar la URL completa
-      let fullUrl = url.trim();
-      if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
-        fullUrl = `https://${fullUrl}`;
-      }
-      const serviceLayerUrl = `${fullUrl}:${port}`;
-      
       // Crear objeto de compañía
       const companyData = createCompanyData(
         company, // Nombre de la compañía
@@ -64,6 +167,9 @@ export default function SyncCompanyScreen() {
       const success = await saveCompany(companyData);
       
       if (success) {
+        // Si la conexión fue exitosa, guardamos los valores
+        await handleLastConnection('save');
+        
         Alert.alert(
           "Compañía sincronizada", 
           "La compañía se ha sincronizado correctamente",
@@ -112,6 +218,28 @@ export default function SyncCompanyScreen() {
           
           <Text style={styles.title}>Sincronizar nueva compañía</Text>
           <Text style={styles.subtitle}>Ingrese los datos de conexión a SAP Business One</Text>
+          
+          <View style={styles.optionsContainer}>
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>Modo de desarrollo</Text>
+              <Switch
+                value={devMode}
+                onValueChange={toggleDevMode}
+                trackColor={{ false: '#d0d0d0', true: '#a06ba5' }}
+                thumbColor={devMode ? '#841584' : '#f4f3f4'}
+              />
+            </View>
+            
+            {savedValuesExist && (
+              <TouchableOpacity 
+                style={styles.lastConnectionButton}
+                onPress={() => handleLastConnection('load')}
+              >
+                <MaterialIcons name="restore" size={16} color="#841584" />
+                <Text style={styles.lastConnectionText}>Cargar última conexión exitosa</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           
           <TextInput
             placeholder="b1-service-layer.com"
@@ -203,9 +331,38 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    marginBottom: 30,
+    marginBottom: 20,
     textAlign: 'center',
     color: '#666',
+  },
+  optionsContainer: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#444',
+  },
+  lastConnectionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    marginTop: 4,
+  },
+  lastConnectionText: {
+    color: '#841584',
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: '500',
   },
   input: {
     height: 50,
@@ -232,4 +389,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 8,
   },
-}); 
+});

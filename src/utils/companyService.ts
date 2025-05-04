@@ -39,8 +39,7 @@ export const getCompanies = async (): Promise<Company[]> => {
       const { data: supabaseCompanies, error } = await supabase
         .from('companies')
         .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true);
+        .eq('user_id', userId);
 
       if (error) {
         console.error('Error fetching companies from Supabase:', error);
@@ -277,7 +276,7 @@ export const deleteCompany = async (companyId: string): Promise<boolean> => {
     
     // Siempre intentar eliminar en Supabase primero
     try {
-      console.log('Soft-deleting company in Supabase first with user ID:', userId);
+      //console.log('Soft-deleting company in Supabase first with user ID:', userId);
       
       const { error } = await supabase
         .from('companies')
@@ -358,7 +357,7 @@ export const testConnection = async (
     fullUrl = `${fullUrl}:${port}`;
     
     // Intentar conectarse a Service Layer
-    const response = await fetch(`${fullUrl}/b1s/v1/Login`, {
+    const response = await fetch(`${fullUrl}/b1s/v2/Login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -387,10 +386,16 @@ export const createCompanyData = (
   username: string,
   password: string
 ): Company => {
-  // Crear credenciales en formato "{username, company}:password"
-  const credentials = `${username}, ${databaseName}:${password}`;
-  // Codificar en base64
-  const encodedCredentials = btoa(credentials);
+
+const credentialsObj = { 
+  CompanyDB: databaseName, 
+  UserName: username 
+};
+const credentials = `${JSON.stringify(credentialsObj)}:${password}`;
+
+console.log(credentials);
+// Codificar en base64
+const encodedCredentials = btoa(credentials);
   
   return {
     id: generateUUID(),
@@ -401,4 +406,31 @@ export const createCompanyData = (
     lastSyncDate: new Date().toISOString(),
     isActive: true
   };
+};
+
+/**
+ * Verifica si ya existe una compañía con la misma URL, puerto y nombre
+ */
+export const checkCompanyExists = async (serviceLayerUrl: string, databaseName: string): Promise<boolean> => {
+  try {
+    // Get user ID after ensuring authentication
+    const userId = await getCurrentUserId();
+    
+    const { data: existingCompanies, error } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('service_layer_url', serviceLayerUrl)
+      .eq('database_name', databaseName);
+
+    if (error) {
+      console.error('Error checking existing company:', error);
+      return false;
+    }
+
+    return existingCompanies && existingCompanies.length > 0;
+  } catch (error) {
+    console.error('Error al verificar compañía existente:', error);
+    return false;
+  }
 }; 

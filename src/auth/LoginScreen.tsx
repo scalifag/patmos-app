@@ -12,10 +12,16 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  SafeAreaView
+  SafeAreaView,
+  Switch
 } from 'react-native';
 import { isUserLoggedInOffline } from '@/auth/authService';
 import { supabase } from '@/api/supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Constantes para el almacenamiento
+const SAVED_EMAIL_KEY = 'patmos_saved_email';
+const REMEMBER_USER_KEY = 'patmos_remember_user';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -23,11 +29,45 @@ export default function LoginScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [networkOk, setNetworkOk] = useState<boolean | null>(null);
+  const [rememberUser, setRememberUser] = useState(false);
 
   useEffect(() => {
     checkOfflineLogin();
     checkNetwork();
+    loadSavedEmail();
   }, []);
+
+  const loadSavedEmail = async () => {
+    try {
+      const savedEmail = await AsyncStorage.getItem(SAVED_EMAIL_KEY);
+      const shouldRemember = await AsyncStorage.getItem(REMEMBER_USER_KEY);
+      
+      if (savedEmail) {
+        setEmail(savedEmail);
+      }
+      
+      if (shouldRemember === 'true') {
+        setRememberUser(true);
+      }
+    } catch (error) {
+      console.error('Error al cargar el correo guardado:', error);
+    }
+  };
+
+  const saveEmailPreference = async () => {
+    try {
+      if (rememberUser && email) {
+        await AsyncStorage.setItem(SAVED_EMAIL_KEY, email);
+        await AsyncStorage.setItem(REMEMBER_USER_KEY, 'true');
+      } else {
+        // Si el usuario desactiva "recordar", eliminamos los datos guardados
+        await AsyncStorage.removeItem(SAVED_EMAIL_KEY);
+        await AsyncStorage.setItem(REMEMBER_USER_KEY, 'false');
+      }
+    } catch (error) {
+      console.error('Error al guardar preferencias:', error);
+    }
+  };
 
   const checkOfflineLogin = async () => {
     try {
@@ -76,6 +116,9 @@ export default function LoginScreen({ navigation }: any) {
     setErrorMessage('');
 
     try {
+      // Guardar preferencia de email antes de iniciar sesión
+      await saveEmailPreference();
+      
       // Usando directamente supabase aquí para evitar capas adicionales que podrían fallar
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -148,6 +191,16 @@ export default function LoginScreen({ navigation }: any) {
             editable={!loading}
           />
           
+          <View style={styles.rememberContainer}>
+            <Switch
+              value={rememberUser}
+              onValueChange={setRememberUser}
+              trackColor={{ false: '#d0d0d0', true: '#a06ba5' }}
+              thumbColor={rememberUser ? '#841584' : '#f4f3f4'}
+            />
+            <Text style={styles.rememberText}>Recordar usuario</Text>
+          </View>
+
           {loading ? (
             <ActivityIndicator size="large" color="#841584" style={styles.loader} />
           ) : (
@@ -159,7 +212,6 @@ export default function LoginScreen({ navigation }: any) {
               <Text style={styles.loginButtonText}>Iniciar sesión</Text>
             </TouchableOpacity>
           )}
-          
           
           <View style={styles.registerContainer}>
             <Text>¿No tienes una cuenta? </Text>
@@ -249,13 +301,14 @@ const styles = StyleSheet.create({
   networkWarningText: {
     color: '#856404',
   },
-  networkCheckButton: {
-    marginTop: 15,
+  rememberContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  networkCheckText: {
-    color: '#666',
-    textDecorationLine: 'underline',
-  },
+  rememberText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#555',
+  }
 });
-

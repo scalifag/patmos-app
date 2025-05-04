@@ -24,13 +24,12 @@ export default function SyncCompanyScreen() {
   const [password, setPassword] = useState('');
   const [company, setCompany] = useState('');
   const [loading, setLoading] = useState(false);
-  const [testingConnection, setTestingConnection] = useState(false);
 
-  const handleTestConnection = async () => {
+  const handleTestAndSaveConnection = async () => {
     // Validar datos
     if (!validateInputs()) return;
 
-    setTestingConnection(true);
+    setLoading(true);
     try {
       const connectionSuccess = await testConnection(
         url,
@@ -40,33 +39,11 @@ export default function SyncCompanyScreen() {
         company
       );
       
-      if (connectionSuccess) {
-        Alert.alert(
-          "Conexión exitosa", 
-          "Se estableció conexión con SAP Business One correctamente",
-          [{ text: "OK" }]
-        );
-      } else {
+      if (!connectionSuccess) {
         throw new Error('No se pudo establecer la conexión');
       }
-    } catch (error: any) {
-      console.error('Error al probar la conexión:', error);
-      Alert.alert(
-        "Error de conexión", 
-        `No se pudo conectar a SAP Business One: ${error.message || 'Error desconocido'}`,
-        [{ text: "OK" }]
-      );
-    } finally {
-      setTestingConnection(false);
-    }
-  };
 
-  const handleSaveConnection = async () => {
-    // Validar datos
-    if (!validateInputs()) return;
-
-    setLoading(true);
-    try {
+      // Si la conexión es exitosa, continuar con guardar
       // Formar la URL completa
       let fullUrl = url.trim();
       if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
@@ -99,10 +76,10 @@ export default function SyncCompanyScreen() {
         throw new Error('No se pudo guardar la información de la compañía');
       }
     } catch (error: any) {
-      console.error('Error al guardar la conexión:', error);
+      console.error('Error:', error);
       Alert.alert(
         "Error", 
-        `No se pudo guardar la información de la compañía: ${error.message || 'Error desconocido'}`,
+        `${error.message || 'Error desconocido'}`,
         [{ text: "OK" }]
       );
     } finally {
@@ -137,7 +114,7 @@ export default function SyncCompanyScreen() {
           <Text style={styles.subtitle}>Ingrese los datos de conexión a SAP Business One</Text>
           
           <TextInput
-            placeholder="URL de ServiceLayer (sin http://)"
+            placeholder="b1-service-layer.com"
             value={url}
             onChangeText={setUrl}
             style={styles.input}
@@ -146,7 +123,7 @@ export default function SyncCompanyScreen() {
           />
           
           <TextInput
-            placeholder="Puerto de ServiceLayer"
+            placeholder="50000"
             value={port}
             onChangeText={setPort}
             style={styles.input}
@@ -155,7 +132,7 @@ export default function SyncCompanyScreen() {
           />
           
           <TextInput
-            placeholder="Usuario"
+            placeholder="manager"
             value={username}
             onChangeText={setUsername}
             style={styles.input}
@@ -181,23 +158,8 @@ export default function SyncCompanyScreen() {
           />
           
           <TouchableOpacity 
-            style={styles.testButton}
-            onPress={handleTestConnection}
-            disabled={loading || testingConnection}
-          >
-            {testingConnection ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <>
-                <MaterialIcons name="wifi-tethering" size={20} color="white" />
-                <Text style={styles.buttonText}>Probar conexión</Text>
-              </>
-            )}
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.saveButton}
-            onPress={handleSaveConnection}
+            style={styles.actionButton}
+            onPress={handleTestAndSaveConnection}
             disabled={loading}
           >
             {loading ? (
@@ -205,7 +167,7 @@ export default function SyncCompanyScreen() {
             ) : (
               <>
                 <MaterialIcons name="save" size={20} color="white" />
-                <Text style={styles.buttonText}>Guardar compañía</Text>
+                <Text style={styles.buttonText}>Probar y guardar</Text>
               </>
             )}
           </TouchableOpacity>
@@ -255,23 +217,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     fontSize: 16,
   },
-  testButton: {
-    backgroundColor: '#0066CC',
-    borderRadius: 8,
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 16,
-  },
-  saveButton: {
+  actionButton: {
     backgroundColor: '#841584',
     borderRadius: 8,
     height: 50,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 10,
   },
   buttonText: {
     color: 'white',

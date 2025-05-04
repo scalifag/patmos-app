@@ -1,39 +1,7 @@
 // App.tsx
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import LoginScreen from './src/auth/LoginScreen';
-import RegisterScreen from './src/auth/RegisterScreen';
-import SettingsScreen from '@/screens/SettingsScreen';
-import CompaniasScreen from '@/screens/CompaniasScreen';
-import SyncCompanyScreen from '@/screens/SyncCompanyScreen';
-
-const Stack = createStackNavigator();
+import Navigation from '@/navigation';
 
 export default function App() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen 
-          name="Compañias" 
-          component={CompaniasScreen}
-          options={{ 
-            title: 'Compañías',
-            headerBackTitle: 'Atrás' 
-          }}
-        />
-        <Stack.Screen 
-          name="SyncCompany" 
-          component={SyncCompanyScreen}
-          options={{ 
-            title: 'Sincronizar compañía',
-            headerBackTitle: 'Atrás' 
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+  return <Navigation />;
 }

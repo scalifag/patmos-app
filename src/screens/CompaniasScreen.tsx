@@ -9,18 +9,25 @@ import {
   Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { getCompanies, Company } from '@/utils/companyService';
+import { RootStackParamList } from '@/navigation';
+
+type CompaniasScreenNavigationProp = StackNavigationProp<
+  RootStackParamList
+>;
 
 export default function CompaniasScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<CompaniasScreenNavigationProp>();
+  const isFocused = useIsFocused();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const handleSyncNewCompany = () => {
     // Navegar a la pantalla de sincronización de compañía
-    navigation.navigate('SyncCompany' as never);
+    navigation.navigate('SyncCompany');
   };
 
   // Configuramos el botón de sincronización en el header
@@ -39,8 +46,10 @@ export default function CompaniasScreen() {
 
   // Cargamos las compañías
   useEffect(() => {
-    fetchCompanies();
-  }, []);
+    if (isFocused) {
+      fetchCompanies();
+    }
+  }, [isFocused]);
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -69,10 +78,8 @@ export default function CompaniasScreen() {
   };
 
   const handleCompanyPress = (company: Company) => {
-    // Navegar a los detalles de la compañía
-    Alert.alert('Detalles de Compañía', `Ver detalles de ${company.name}`);
-    // En un caso real, se navegaría a una pantalla de detalles
-    // navigation.navigate('CompanyDetail', { companyId: company.id });
+    // Navegar a la pantalla de edición de la compañía
+    navigation.navigate('EditCompany', { companyId: company.id });
   };
 
   const renderCompanyItem = ({ item }: { item: Company }) => {

@@ -3,15 +3,21 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 // Screens
+import LoginScreen from '@/auth/LoginScreen';
+import RegisterScreen from '@/auth/RegisterScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
 import CompaniasScreen from '@/screens/CompaniasScreen';
 import SyncCompanyScreen from '@/screens/SyncCompanyScreen';
+import EditCompanyScreen from '@/screens/EditCompanyScreen';
 
 // Define types for the navigation stack parameters
 export type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
   Settings: undefined;
   Compañias: undefined;
   SyncCompany: undefined;
+  EditCompany: { companyId: string };
   // Add other screens here
 };
 
@@ -21,7 +27,7 @@ export default function Navigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Settings"
+        initialRouteName="Login"
         screenOptions={{
           headerShown: true,
           headerStyle: {
@@ -38,6 +44,14 @@ export default function Navigation() {
           headerTintColor: '#0066CC',
         }}
       >
+        <Stack.Screen 
+          name="Login" 
+          component={LoginScreen}
+        />
+        <Stack.Screen 
+          name="Register" 
+          component={RegisterScreen}
+        />
         <Stack.Screen 
           name="Settings" 
           component={SettingsScreen}
@@ -58,6 +72,14 @@ export default function Navigation() {
           component={SyncCompanyScreen}
           options={{ 
             title: 'Sincronizar compañía',
+            headerBackTitle: 'Atrás' 
+          }}
+        />
+        <Stack.Screen 
+          name="EditCompany" 
+          component={EditCompanyScreen}
+          options={{ 
+            title: 'Editar compañía',
             headerBackTitle: 'Atrás' 
           }}
         />

@@ -18,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      console.log('Realizando fetch a:', url);
+      //console.log('Realizando fetch a:', url);
 
       return fetch(url, {
         ...options,
@@ -30,12 +30,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       })
         .then(response => {
           clearTimeout(timeoutId);
-          console.log('Respuesta recibida status:', response.status);
+          //console.log('Respuesta recibida status:', response.status);
           return response;
         })
         .catch(error => {
           clearTimeout(timeoutId);
-          console.error('Error en fetch:', error);
+          //console.error('Error en fetch:', error);
           if (error.name === 'AbortError') {
             throw new Error('La petición tomó demasiado tiempo en responder');
           }

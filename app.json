@@ -27,10 +27,15 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.patmos.app",
-      "permissions": ["INTERNET"]
+      "permissions": [
+        "INTERNET"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }

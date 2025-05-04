@@ -2,8 +2,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { Alert } from 'react-native';
 
-const supabaseUrl = 'https://tlybgaoldfjxegkwmxbv.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRseWJnYW9sZGZqeGVna3dteGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwMjgwNjcsImV4cCI6MjA2MTYwNDA2N30.lpzYnONfBahIrXMGKSsvFOT1zTp1cNWIap83ZKbi598';
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase credentials. Please check your environment variables.');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

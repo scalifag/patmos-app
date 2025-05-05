@@ -5,20 +5,20 @@ import { createStackNavigator } from '@react-navigation/stack';
 // Screens
 import LoginScreen from '@/auth/LoginScreen';
 import RegisterScreen from '@/auth/RegisterScreen';
-import SettingsScreen from '@/screens/SettingsScreen';
-import CompaniasScreen from '@/screens/CompaniasScreen';
 import SyncCompanyScreen from '@/screens/SyncCompanyScreen';
 import EditCompanyScreen from '@/screens/EditCompanyScreen';
+import CompaniasScreen from '@/screens/CompaniasScreen';
 
-// Define types for the navigation stack parameters
+// Navegadores
+import BottomTabs from './BottomTabs';
+
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
-  Settings: undefined;
-  Compañias: undefined;
+  MainTabs: undefined; // Contenedor de pestañas inferiores
   SyncCompany: undefined;
   EditCompany: { companyId: string };
-  // Add other screens here
+  Companias: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -44,46 +44,28 @@ export default function Navigation() {
           headerTintColor: '#0066CC',
         }}
       >
-        <Stack.Screen 
-          name="Login" 
-          component={LoginScreen}
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen
+          name="MainTabs"
+          component={BottomTabs}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="Register" 
-          component={RegisterScreen}
-        />
-        <Stack.Screen 
-          name="Settings" 
-          component={SettingsScreen}
-          options={{ 
-            title: 'Configuración' 
-          }}
-        />
-        <Stack.Screen 
-          name="Compañias" 
-          component={CompaniasScreen}
-          options={{ 
-            title: 'Compañías',
-            headerBackTitle: 'Atrás' 
-          }}
-        />
-        <Stack.Screen 
-          name="SyncCompany" 
+        <Stack.Screen
+          name="SyncCompany"
           component={SyncCompanyScreen}
-          options={{ 
-            title: 'Sincronizar compañía',
-            headerBackTitle: 'Atrás' 
-          }}
+          options={{ title: 'Sincronizar compañía' }}
         />
-        <Stack.Screen 
-          name="EditCompany" 
+        <Stack.Screen
+          name="EditCompany"
           component={EditCompanyScreen}
-          options={{ 
-            title: 'Editar compañía',
-            headerBackTitle: 'Atrás' 
-          }}
+          options={{ title: 'Editar compañía' }}
         />
-        {/* Add other screens here */}
+        <Stack.Screen
+          name="Companias"
+          component={CompaniasScreen}
+          options={{ title: 'Compañía' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

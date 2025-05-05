@@ -1,37 +1,19 @@
-// src/screens/SettingsScreen.tsx
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, SectionList, Switch, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { logout } from '@/auth/authService';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList } from '@/navigation'; // Asegúrate de exportarlo en navigation/index.ts
+import { SettingsStackParamList } from '@/navigation/SettingsStack'; // Según dónde definas esto
 
-// Define the navigation param list type
-type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  Settings: undefined;
-  Perfil: undefined;
-  Compañias: undefined;
-  Sincronizacion: undefined;
-  Documentos: undefined;
-  Articulos: undefined;
-  Clientes: undefined;
-  Almacenes: undefined;
-  Usuarios: undefined;
-  ListasPrecios: undefined;
-  SeriesNumeracion: undefined;
-  PersonalizarListView: undefined;
-  FlujosAutorizacion: undefined;
-  SyncCompany: undefined;
-};
-
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+type RootNav = StackNavigationProp<RootStackParamList>;
+type SettingsNav = StackNavigationProp<SettingsStackParamList>;
 
 type SettingItem = {
   title: string;
   icon: string;
-  screen?: keyof RootStackParamList;
+  screen?: keyof SettingsStackParamList;
   toggle?: boolean;
   value?: boolean;
   onToggle?: (value: boolean) => void;
@@ -43,13 +25,14 @@ type SettingSection = {
 };
 
 export default function SettingsScreen() {
-  const navigation = useNavigation<NavigationProp>();
+  const rootNavigation = useNavigation<RootNav>();
+  const settingsNavigation = useNavigation<SettingsNav>();
   const [pushNotifications, setPushNotifications] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigation.reset({
+      rootNavigation.reset({
         index: 0,
         routes: [{ name: 'Login' }]
       });
@@ -68,8 +51,8 @@ export default function SettingsScreen() {
     {
       title: 'Sincronización',
       data: [
-        { title: 'Compañias', icon: 'business', screen: 'Compañias' },
-        { title: 'Sincronización', icon: 'sync', screen: 'Sincronizacion' },
+        { title: 'Compañias', icon: 'business', screen: 'Companias' },
+        { title: 'Datos locales', icon: 'sync', screen: 'Sincronizacion' },
       ]
     },
     {
@@ -110,7 +93,7 @@ export default function SettingsScreen() {
       style={styles.option} 
       onPress={item.toggle ? undefined : () => {
         if (item.screen) {
-          navigation.navigate(item.screen);
+          settingsNavigation.navigate(item.screen);
         }
       }}
       disabled={item.toggle}
@@ -132,7 +115,7 @@ export default function SettingsScreen() {
   const renderProfileItem = ({ item }: { item: SettingItem }) => (
     <TouchableOpacity 
       style={styles.profileOption} 
-      onPress={() => navigation.navigate(item.screen as any)}
+      onPress={() => settingsNavigation.navigate(item.screen as keyof SettingsStackParamList)}
     >
       <View style={styles.profileImageContainer}>
         <Image 
@@ -154,6 +137,16 @@ export default function SettingsScreen() {
     ) : null
   );
 
+  useLayoutEffect(() => {
+    settingsNavigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={handleLogout} style={{ marginRight: 16 }}>
+          <Ionicons name="log-out-outline" size={24} color="#000" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [settingsNavigation]);
+
   return (
     <View style={styles.container}>
       <SectionList
@@ -170,13 +163,10 @@ export default function SettingsScreen() {
         SectionSeparatorComponent={() => <View style={styles.sectionSeparator} />}
         stickySectionHeadersEnabled={false}
       />
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
-      </TouchableOpacity>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

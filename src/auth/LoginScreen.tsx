@@ -74,7 +74,8 @@ export default function LoginScreen({ navigation }: any) {
       const loggedIn = await isUserLoggedInOffline();
       if (loggedIn) {
         Alert.alert('Modo sin conexión', 'Ingresando con sesión guardada');
-        navigation.replace('Settings');
+        //navigation.replace('Settings');
+        navigation.replace('MainTabs');
       }
     } catch (error) {
       console.error('Error comprobando sesión guardada:', error);
@@ -134,7 +135,9 @@ export default function LoginScreen({ navigation }: any) {
           refresh_token: data.session.refresh_token,
         });
 
-        navigation.replace('Settings');
+        //navigation.replace('Settings');
+        navigation.replace('MainTabs');
+
       }
     } catch (error: any) {
       console.error('Error de inicio de sesión:', error);

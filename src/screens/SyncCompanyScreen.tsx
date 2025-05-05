@@ -138,7 +138,7 @@ export default function SyncCompanyScreen() {
       // Verificar si ya existe una compañía con los mismos datos
       const exists = await checkCompanyExists(serviceLayerUrl, company);
       if (exists) {
-        throw new Error('Ya existe una compañía con la misma URL, puerto y nombre de base de datos');
+        throw new Error('No puede crear una nueva compañia, comniquese con nosotros.');
       }
 
       const connectionSuccess = await testConnection(

@@ -5,8 +5,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 // Screens
 import LoginScreen from '@/auth/LoginScreen';
 import RegisterScreen from '@/auth/RegisterScreen';
-import SyncCompanyScreen from '@/screens/SyncCompanyScreen';
-import EditCompanyScreen from '@/screens/EditCompanyScreen';
+//import SyncCompanyScreen from '@/screens/SyncCompanyScreen';
+//import EditCompanyScreen from '@/screens/EditCompanyScreen';
 import CompaniasScreen from '@/screens/CompaniasScreen';
 
 // Navegadores
@@ -50,16 +50,6 @@ export default function Navigation() {
           name="MainTabs"
           component={BottomTabs}
           options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="SyncCompany"
-          component={SyncCompanyScreen}
-          options={{ title: 'Sincronizar compañía' }}
-        />
-        <Stack.Screen
-          name="EditCompany"
-          component={EditCompanyScreen}
-          options={{ title: 'Editar compañía' }}
         />
         <Stack.Screen
           name="Companias"

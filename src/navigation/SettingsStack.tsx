@@ -13,6 +13,8 @@ import SeriesNumeracionScreen from '@/screens/SeriesNumeracionScreen';
 import DocumentsScreen from '@/screens/DocumentsScreen';
 import PersonalizarListViewScreen from '@/screens/PersonalizarListViewScreen';
 import FlujosAutorizacionScreen from '@/screens/FlujosAutorizacionScreen';
+import EditCompanyScreen from '@/screens/EditCompanyScreen';
+import SyncCompanyScreen from '@/screens/SyncCompanyScreen';
 
 export type SettingsStackParamList = {
   Settings: undefined;
@@ -28,6 +30,8 @@ export type SettingsStackParamList = {
   Documentos: undefined;
   PersonalizarListView: undefined;
   FlujosAutorizacion: undefined;
+  EditCompany: { companyId: string };
+  SyncCompany: undefined
 };
 
 const Stack = createStackNavigator<SettingsStackParamList>();
@@ -38,7 +42,7 @@ export default function SettingsStack() {
       <Stack.Screen 
         name="Settings" 
         component={SettingsScreen} 
-        options={{ title: 'Configuración' }} 
+        options={{ title: '' }} 
       />
       <Stack.Screen name="Perfil" component={PerfilScreen} options={{ title: 'Perfil' }} />
       <Stack.Screen name="Companias" component={CompaniasScreen} options={{ title: 'Compañías' }} />
@@ -51,7 +55,8 @@ export default function SettingsStack() {
       <Stack.Screen name="SeriesNumeracion" component={SeriesNumeracionScreen} options={{ title: 'Series de Numeración' }} />
       <Stack.Screen name="Documentos" component={DocumentsScreen} options={{ title: 'Documentos' }} />
       <Stack.Screen name="PersonalizarListView" component={PersonalizarListViewScreen} options={{ title: 'Personalizar ListView' }} />
-      <Stack.Screen name="FlujosAutorizacion" component={FlujosAutorizacionScreen} options={{ title: 'Flujos de Autorización' }} />
+      <Stack.Screen name="EditCompany" component={EditCompanyScreen} options={{ title: 'Editar Compañia' }} />
+      <Stack.Screen name="SyncCompany" component={SyncCompanyScreen} options={{ title: 'Nueva Compañia' }} />
     </Stack.Navigator>
   );
 }

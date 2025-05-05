@@ -33,6 +33,7 @@ export default function CompaniasScreen() {
   // Configuramos el botón de sincronización en el header
   useLayoutEffect(() => {
     navigation.setOptions({
+      headerBackTitle: '',
       headerRight: () => (
         <TouchableOpacity 
           onPress={handleSyncNewCompany} 

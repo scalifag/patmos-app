@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { testConnection, createCompanyData, saveCompany, checkCompanyExists } from '@/utils/companyService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Header } from '@react-navigation/stack';
 
 // Valores predeterminados para desarrollo
 const DEV_VALUES = {
@@ -44,6 +45,10 @@ export default function SyncCompanyScreen() {
   useEffect(() => {
     loadDevModeStatus();
     checkForSavedValues();
+    navigation.setOptions({
+      headerBackTitle: '', // Eliminar el texto del botón de retroceso
+      // ... otras opciones si es necesario ...
+    });
   }, []);
 
   // Carga el estado del modo de desarrollo

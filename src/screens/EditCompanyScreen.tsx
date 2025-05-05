@@ -101,6 +101,7 @@ export default function EditCompanyScreen() {
   // Configurar el botón de eliminar en la barra de navegación
   useEffect(() => {
     navigation.setOptions({
+      headerBackTitle: '',
       headerRight: () => (
         <TouchableOpacity 
           style={styles.deleteIcon} 

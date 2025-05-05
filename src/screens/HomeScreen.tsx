@@ -1,28 +1,156 @@
-import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import React, { useState, useLayoutEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  FlatList,
+  Pressable,
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const mockCompanies = ['Compañía A', 'Compañía B', 'Compañía C'];
+const mockCompanies = [
+  { name: 'Base de datos de SAP 1', icon: '🏢' },
+  { name: 'Base de datos de SAP 2', icon: '🏬' },
+  { name: 'Base de datos de SAP 3', icon: '🏭' },
+];
 
 export default function HomeScreen() {
+  const navigation = useNavigation();
   const [selectedCompany, setSelectedCompany] = useState(mockCompanies[0]);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleChangeCompany = () => {
-    const currentIndex = mockCompanies.indexOf(selectedCompany);
-    const nextIndex = (currentIndex + 1) % mockCompanies.length;
-    setSelectedCompany(mockCompanies[nextIndex]);
+  const handleSelectCompany = (company: typeof mockCompanies[0]) => {
+    setSelectedCompany(company);
+    setModalVisible(false);
   };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: '',
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.headerCompanyButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.companyIcon}>{selectedCompany.icon}</Text>
+          <Text style={styles.companyName} numberOfLines={1}>
+            {selectedCompany.name}
+          </Text>
+          <MaterialIcons name="expand-more" size={18} color="#444" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, selectedCompany]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Compañía actual:</Text>
-      <Text style={styles.company}>{selectedCompany}</Text>
-      <Button title="Cambiar compañía" onPress={handleChangeCompany} />
+      <Text style={styles.welcomeText}>
+        Bienvenido a la app de {selectedCompany.name}
+      </Text>
+
+      {/* Modal para seleccionar compañía */}
+      <Modal
+        visible={modalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Seleccionar compañía</Text>
+            <FlatList
+              data={mockCompanies}
+              keyExtractor={(item) => item.name}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.optionItem,
+                    pressed && { backgroundColor: '#f2f2f2' },
+                  ]}
+                  onPress={() => handleSelectCompany(item)}
+                >
+                  <Text style={styles.optionIcon}>{item.icon}</Text>
+                  <Text style={styles.optionText}>{item.name}</Text>
+                </Pressable>
+              )}
+            />
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={styles.cancelButton}
+            >
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  label: { fontSize: 18, marginBottom: 8 },
-  company: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
+  welcomeText: { fontSize: 16, textAlign: 'center' },
+  headerCompanyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    backgroundColor: '#f2f2f2',
+    borderRadius: 20,
+    marginLeft: 10,
+  },
+  companyIcon: {
+    fontSize: 18,
+    marginRight: 4,
+  },
+  companyName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    maxWidth: 300,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: '#00000055',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCard: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    maxHeight: '60%',
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  optionIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  cancelButton: {
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  cancelText: {
+    fontSize: 15,
+    color: '#007AFF',
+  },
 });

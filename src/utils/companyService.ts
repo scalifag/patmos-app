@@ -58,16 +58,16 @@ export const getCompanies = async (): Promise<Company[]> => {
         }));
 
         // Update the local storage with data from Supabase
-        await SecureStore.setItemAsync('patmos_companies', JSON.stringify(companies));
-        supabaseFetched = true;
-        console.log('Updated local storage with data from Supabase');
+        //await SecureStore.setItemAsync('patmos_companies', JSON.stringify(companies));
+        //supabaseFetched = true;
+        //console.log('Updated local storage with data from Supabase');
       } else {
         console.log('No companies found in Supabase');
       }
     } catch (supabaseError) {
       console.error('Exception when fetching from Supabase:', supabaseError);
     }
-    
+    /*
     // Solo usar almacenamiento local si Supabase no devolvió compañías
     if (!supabaseFetched) {
       console.log('Using local storage since Supabase fetch didn\'t return companies');
@@ -85,7 +85,7 @@ export const getCompanies = async (): Promise<Company[]> => {
         console.log('No companies found in local storage');
       }
     }
-    
+    */
     return companies;
   } catch (error) {
     console.error('Error al obtener compañías:', error);
@@ -136,14 +136,19 @@ export const saveCompany = async (company: Company): Promise<boolean> => {
 
       if (error) {
         console.error('Error saving company to Supabase:', error);
+        supabaseSuccess = false;
       } else {
         console.log('Company saved to Supabase successfully');
         supabaseSuccess = true;
       }
+      return supabaseSuccess;
     } catch (supabaseError) {
       console.error('Exception saving to Supabase:', supabaseError);
-    }
+      return supabaseSuccess;
 
+
+    }
+/*
     // Always save to local storage as backup
     try {
       console.log('Saving company to local storage');
@@ -181,7 +186,8 @@ export const saveCompany = async (company: Company): Promise<boolean> => {
       
       // If Supabase succeeded but local storage failed, still consider it a success
       return supabaseSuccess;
-    }
+    }*/
+
   } catch (error) {
     console.error('Error al guardar compañía:', error);
     return false;
@@ -216,14 +222,18 @@ export const updateCompany = async (company: Company): Promise<boolean> => {
 
       if (error) {
         console.error('Error updating company in Supabase:', error);
+        supabaseSuccess = false;
+
       } else {
         console.log('Company updated in Supabase successfully');
         supabaseSuccess = true;
       }
+      return supabaseSuccess;
     } catch (supabaseError) {
       console.error('Exception updating in Supabase:', supabaseError);
+      return supabaseSuccess;
     }
-
+/*
     // Always update in local storage as backup
     try {
       console.log('Updating company in local storage');
@@ -259,6 +269,7 @@ export const updateCompany = async (company: Company): Promise<boolean> => {
       // If Supabase succeeded but local storage failed, still consider it a success
       return supabaseSuccess;
     }
+    */
   } catch (error) {
     console.error('Error al actualizar compañía:', error);
     return false;
@@ -286,14 +297,19 @@ export const deleteCompany = async (companyId: string): Promise<boolean> => {
 
       if (error) {
         console.error('Error deleting company from Supabase:', error);
+        supabaseSuccess = false;
+
       } else {
         console.log('Company soft-deleted in Supabase successfully');
         supabaseSuccess = true;
       }
+      return supabaseSuccess;
     } catch (supabaseError) {
       console.error('Exception deleting from Supabase:', supabaseError);
-    }
+      return supabaseSuccess;
 
+    }
+/*
     // Always update local storage as backup
     try {
       console.log('Removing company from local storage');
@@ -322,10 +338,12 @@ export const deleteCompany = async (companyId: string): Promise<boolean> => {
       // If Supabase succeeded but local storage failed, still consider it a success
       return supabaseSuccess;
     }
+      */
   } catch (error) {
     console.error('Error al eliminar compañía:', error);
     return false;
   }
+  
 };
 
 /**

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 // Screens
 import LoginScreen from '@/auth/LoginScreen';
@@ -25,6 +26,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export default function Navigation() {
   return (
+    <ActionSheetProvider>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Login"
@@ -58,5 +60,6 @@ export default function Navigation() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+    </ActionSheetProvider>
   );
 }

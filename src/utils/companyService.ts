@@ -1,5 +1,8 @@
+import 'react-native-url-polyfill/auto';
+import 'react-native-get-random-values';
 import * as SecureStore from 'expo-secure-store';
 import { supabase, getCurrentUserId } from '@/api/supabaseClient';
+import * as Network from 'expo-network';
 
 export type Company = {
   id: string;
@@ -367,6 +370,13 @@ export const testConnection = async (
   companyDB: string
 ): Promise<boolean> => {
   try {
+    const networkState = await Network.getNetworkStateAsync();
+    if (!networkState.isConnected || !networkState.isInternetReachable) {
+      console.warn('No hay conexión a Internet o la red no es alcanzable');
+      return false;
+    }
+
+
     // Formar la URL completa
     let fullUrl = url.trim();
     if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {

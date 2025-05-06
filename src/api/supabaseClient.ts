@@ -1,4 +1,6 @@
 // src/api/supabaseClient.ts
+import 'react-native-url-polyfill/auto';
+import 'react-native-get-random-values';
 import { createClient } from '@supabase/supabase-js';
 import { Alert } from 'react-native';
 import * as SecureStore from 'expo-secure-store';

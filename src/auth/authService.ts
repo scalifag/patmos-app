@@ -1,4 +1,6 @@
 // src/auth/authService.ts
+import 'react-native-url-polyfill/auto';
+import 'react-native-get-random-values';
 import * as SecureStore from 'expo-secure-store';
 import { supabase } from '../api/supabaseClient';
 

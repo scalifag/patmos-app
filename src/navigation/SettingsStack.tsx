@@ -55,6 +55,7 @@ export default function SettingsStack() {
       <Stack.Screen name="SeriesNumeracion" component={SeriesNumeracionScreen} options={{ title: 'Series de Numeración' }} />
       <Stack.Screen name="Documentos" component={DocumentsScreen} options={{ title: 'Documentos' }} />
       <Stack.Screen name="PersonalizarListView" component={PersonalizarListViewScreen} options={{ title: 'Personalizar ListView' }} />
+      <Stack.Screen name="FlujosAutorizacion" component={FlujosAutorizacionScreen} options={{ title: 'Flujos de autorización' }} />
       <Stack.Screen name="EditCompany" component={EditCompanyScreen} options={{ title: 'Editar Compañia' }} />
       <Stack.Screen name="SyncCompany" component={SyncCompanyScreen} options={{ title: 'Nueva Compañia' }} />
     </Stack.Navigator>

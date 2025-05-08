@@ -93,7 +93,7 @@ export default function SettingsScreen() {
       style={styles.option} 
       onPress={item.toggle ? undefined : () => {
         if (item.screen) {
-          settingsNavigation.navigate(item.screen);
+          settingsNavigation.navigate(item.screen as any, {});
         }
       }}
       disabled={item.toggle}
@@ -115,7 +115,7 @@ export default function SettingsScreen() {
   const renderProfileItem = ({ item }: { item: SettingItem }) => (
     <TouchableOpacity 
       style={styles.profileOption} 
-      onPress={() => settingsNavigation.navigate(item.screen as keyof SettingsStackParamList)}
+      onPress={() => settingsNavigation.navigate(item.screen as any)}
     >
       <View style={styles.profileImageContainer}>
         <Image 

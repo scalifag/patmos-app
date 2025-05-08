@@ -96,10 +96,10 @@ const styles = StyleSheet.create({
   headerCompanyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    backgroundColor: '#f2f2f2',
-    borderRadius: 20,
-    marginLeft: 10,
+    paddingHorizontal: 5,
+    paddingVertical:10,
+    borderRadius: 5,
+    marginLeft: 8,
   },
   companyIcon: {
     fontSize: 18,

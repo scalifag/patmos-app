@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { testConnection, createCompanyData, saveCompany, checkCompanyExists } from '@/utils/companyService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Header } from '@react-navigation/stack';
+import { useTheme } from '@/context/ThemeContext';
 
 // Valores predeterminados para desarrollo
 const DEV_VALUES = {
@@ -33,6 +33,7 @@ const LAST_CONNECTION_KEY = 'patmos_last_connection';
 
 export default function SyncCompanyScreen() {
   const navigation = useNavigation();
+  const { colors } = useTheme();
   const [url, setUrl] = useState('');
   const [port, setPort] = useState('');
   const [username, setUsername] = useState('');
@@ -211,27 +212,27 @@ export default function SyncCompanyScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollView}>
           <View style={styles.iconContainer}>
-            <MaterialIcons name="business" size={64} color="#841584" />
+            <MaterialIcons name="business" size={64} color={colors.primary} />
           </View>
           
-          <Text style={styles.title}>Sincronizar nueva compañía</Text>
-          <Text style={styles.subtitle}>Ingrese los datos de conexión a SAP Business One</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Sincronizar nueva compañía</Text>
+          <Text style={[styles.subtitle, { color: colors.text }]}>Ingrese los datos de conexión a SAP Business One</Text>
           
-          <View style={styles.optionsContainer}>
+          <View style={[styles.optionsContainer, { backgroundColor: colors.card }]}>
             <View style={styles.optionRow}>
-              <Text style={styles.optionText}>Modo de desarrollo</Text>
+              <Text style={[styles.optionText, { color: colors.text }]}>Modo de desarrollo</Text>
               <Switch
                 value={devMode}
                 onValueChange={toggleDevMode}
-                trackColor={{ false: '#d0d0d0', true: '#a06ba5' }}
-                thumbColor={devMode ? '#841584' : '#f4f3f4'}
+                trackColor={{ false: colors.border, true: colors.secondary }}
+                thumbColor={devMode ? colors.primary : '#f4f3f4'}
               />
             </View>
             
@@ -240,36 +241,49 @@ export default function SyncCompanyScreen() {
                 style={styles.lastConnectionButton}
                 onPress={() => handleLastConnection('load')}
               >
-                <MaterialIcons name="restore" size={16} color="#841584" />
-                <Text style={styles.lastConnectionText}>Cargar última conexión exitosa</Text>
+                <MaterialIcons name="restore" size={16} color={colors.primary} />
+                <Text style={[styles.lastConnectionText, { color: colors.primary }]}>Cargar última conexión exitosa</Text>
               </TouchableOpacity>
             )}
           </View>
           
           <TextInput
-            placeholder="b1-service-layer.com"
+            placeholder="URL del servidor"
             value={url}
             onChangeText={setUrl}
-            style={styles.input}
-            autoCapitalize="none"
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             editable={!loading}
           />
           
           <TextInput
-            placeholder="50000"
+            placeholder="Puerto"
             value={port}
             onChangeText={setPort}
-            style={styles.input}
-            keyboardType="number-pad"
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
+            keyboardType="numeric"
             editable={!loading}
           />
           
           <TextInput
-            placeholder="manager"
+            placeholder="Usuario"
             value={username}
             onChangeText={setUsername}
-            style={styles.input}
-            autoCapitalize="none"
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             editable={!loading}
           />
           
@@ -277,30 +291,40 @@ export default function SyncCompanyScreen() {
             placeholder="Contraseña"
             value={password}
             onChangeText={setPassword}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             secureTextEntry
             editable={!loading}
           />
           
           <TextInput
-            placeholder="Compañía (base de datos)"
+            placeholder="Compañía"
             value={company}
             onChangeText={setCompany}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             editable={!loading}
           />
           
-          <TouchableOpacity 
-            style={styles.actionButton}
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.primary }]}
             onPress={handleTestAndSaveConnection}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="white" />
+              <ActivityIndicator color="white" style={styles.loader} />
             ) : (
               <>
-                <MaterialIcons name="save" size={20} color="white" />
-                <Text style={styles.buttonText}>Probar y guardar</Text>
+                <MaterialIcons name="sync" size={24} color="white" />
+                <Text style={styles.buttonText}>Sincronizar</Text>
               </>
             )}
           </TouchableOpacity>
@@ -313,7 +337,6 @@ export default function SyncCompanyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
   },
   keyboardView: {
     flex: 1,
@@ -332,16 +355,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
-    color: '#333',
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 20,
     textAlign: 'center',
-    color: '#666',
   },
   optionsContainer: {
-    backgroundColor: '#f0f0f0',
     borderRadius: 8,
     padding: 12,
     marginBottom: 20,
@@ -354,7 +374,6 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 16,
-    color: '#444',
   },
   lastConnectionButton: {
     flexDirection: 'row',
@@ -364,7 +383,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   lastConnectionText: {
-    color: '#841584',
     marginLeft: 6,
     fontSize: 14,
     fontWeight: '500',
@@ -372,15 +390,12 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
     fontSize: 16,
   },
   actionButton: {
-    backgroundColor: '#841584',
     borderRadius: 8,
     height: 50,
     flexDirection: 'row',
@@ -393,5 +408,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  loader: {
+    marginRight: 8,
   },
 });

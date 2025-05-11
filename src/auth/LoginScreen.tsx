@@ -18,12 +18,16 @@ import {
 import { isUserLoggedInOffline } from '@/auth/authService';
 import { supabase } from '@/api/supabaseClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { login } from './authService';
+import { useTheme } from '@/context/ThemeContext';
 
 // Constantes para el almacenamiento
 const SAVED_EMAIL_KEY = 'patmos_saved_email';
 const REMEMBER_USER_KEY = 'patmos_remember_user';
 
 export default function LoginScreen({ navigation }: any) {
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -155,31 +159,36 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollView}>
-          <Text style={styles.title}>Patmos App</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Patmos App</Text>
           
           {networkOk === false && (
-            <View style={styles.networkWarning}>
-              <Text style={styles.networkWarningText}>
+            <View style={[styles.networkWarning, { backgroundColor: colors.card }]}>
+              <Text style={[styles.networkWarningText, { color: colors.text }]}>
                 ⚠️ Sin conexión a internet
               </Text>
             </View>
           )}
 
           {errorMessage ? (
-            <Text style={styles.errorText}>{errorMessage}</Text>
+            <Text style={[styles.errorText, { color: colors.text }]}>{errorMessage}</Text>
           ) : null}
           
           <TextInput 
             placeholder="Correo electrónico" 
             value={email} 
             onChangeText={setEmail}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             keyboardType="email-address"
             autoCapitalize="none"
             editable={!loading}
@@ -190,7 +199,12 @@ export default function LoginScreen({ navigation }: any) {
             secureTextEntry 
             value={password} 
             onChangeText={setPassword}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             editable={!loading}
           />
           
@@ -198,42 +212,38 @@ export default function LoginScreen({ navigation }: any) {
             <Switch
               value={rememberUser}
               onValueChange={setRememberUser}
-              trackColor={{ false: '#d0d0d0', true: '#a06ba5' }}
-              thumbColor={rememberUser ? '#841584' : '#f4f3f4'}
+              trackColor={{ false: colors.border, true: colors.secondary }}
+              thumbColor={rememberUser ? colors.primary : '#f4f3f4'}
             />
-            <Text style={styles.rememberText}>Recordar usuario</Text>
-          </View>
-
-          {loading ? (
-            <ActivityIndicator size="large" color="#841584" style={styles.loader} />
-          ) : (
-            <TouchableOpacity 
-              style={styles.loginButton}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              <Text style={styles.loginButtonText}>Iniciar sesión</Text>
-            </TouchableOpacity>
-          )}
-          
-          <View style={styles.registerContainer}>
-            <Text>¿No tienes una cuenta? </Text>
-            <Text 
-              style={styles.registerLink}
-              onPress={() => navigation.replace('Register')}
-            >
-              Regístrate
-            </Text>
+            <Text style={[styles.rememberText, { color: colors.text }]}>Recordar usuario</Text>
           </View>
 
           <TouchableOpacity
-            style={styles.forgotPasswordContainer}
-            onPress={() => navigation.navigate('ResetPassword')}
+            style={[styles.loginButton, { backgroundColor: colors.primary }]}
+            onPress={handleLogin}
+            disabled={loading}
           >
-            <Text style={styles.forgotPasswordText}>
-              ¿Olvidaste tu contraseña?
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="white" style={styles.loader} />
+            ) : (
+              <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+            )}
           </TouchableOpacity>
+
+          <View style={styles.forgotPasswordContainer}>
+            <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
+              <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
+                ¿Olvidaste tu contraseña?
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.registerContainer}>
+            <Text style={{ color: colors.text }}>¿No tienes una cuenta? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <Text style={[styles.registerLink, { color: colors.primary }]}>Regístrate</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -243,7 +253,6 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
   },
   keyboardView: {
     flex: 1,
@@ -258,20 +267,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: 'center',
-    color: '#333',
   },
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
     fontSize: 16,
   },
   loginButton: {
-    backgroundColor: '#841584',
     borderRadius: 8,
     height: 50,
     justifyContent: 'center',
@@ -287,10 +292,8 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   errorText: {
-    color: '#d32f2f',
     marginBottom: 15,
     textAlign: 'center',
-    backgroundColor: '#ffebee',
     padding: 10,
     borderRadius: 4,
   },
@@ -300,18 +303,16 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   registerLink: {
-    color: '#841584',
     fontWeight: 'bold',
   },
   networkWarning: {
-    backgroundColor: '#fff3cd',
     padding: 10,
     borderRadius: 4,
     marginBottom: 20,
     alignItems: 'center',
   },
   networkWarningText: {
-    color: '#856404',
+    fontSize: 14,
   },
   rememberContainer: {
     flexDirection: 'row',
@@ -321,14 +322,12 @@ const styles = StyleSheet.create({
   rememberText: {
     marginLeft: 8,
     fontSize: 16,
-    color: '#555',
   },
   forgotPasswordContainer: {
     marginTop: 15,
     alignItems: 'center',
   },
   forgotPasswordText: {
-    color: '#841584',
     fontSize: 14,
   },
 });

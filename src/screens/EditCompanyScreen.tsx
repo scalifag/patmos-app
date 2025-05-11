@@ -23,6 +23,7 @@ import {
   Company 
 } from '@/utils/companyService';
 import { RootStackParamList } from '@/navigation';
+import { useTheme } from '@/context/ThemeContext';
 
 type EditCompanyScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -38,6 +39,7 @@ export default function EditCompanyScreen() {
   const navigation = useNavigation<EditCompanyScreenNavigationProp>();
   const route = useRoute<EditCompanyScreenRouteProp>();
   const { companyId } = route.params;
+  const { colors } = useTheme();
   
   const [company, setCompany] = useState<Company | null>(null);
   const [url, setUrl] = useState('');
@@ -322,90 +324,129 @@ export default function EditCompanyScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollView}>
           <View style={styles.iconContainer}>
-            <MaterialIcons name="business" size={64} color="#841584" />
+            <MaterialIcons name="business" size={64} color={colors.primary} />
           </View>
           
-          <Text style={styles.title}>Editar datos de sincronización</Text>
-          <Text style={styles.subtitle}>Actualice los datos de conexión a SAP Business One</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Editar compañía</Text>
+          <Text style={[styles.subtitle, { color: colors.text }]}>Modifique los datos de la compañía</Text>
           
-          <Text style={styles.label}>Alias de la compañía</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Nombre de la compañía</Text>
           <TextInput
-            placeholder="Alias de la compañía"
+            placeholder="Nombre de la compañía"
             value={companyName}
             onChangeText={setCompanyName}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             editable={!loading && !deleting}
           />
           
-          <Text style={styles.label}>Base de datos SAP</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Base de datos</Text>
           <TextInput
             placeholder="Base de datos"
             value={databaseName}
             onChangeText={setDatabaseName}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             editable={!loading && !deleting}
           />
           
-          <Text style={styles.label}>URL del Service Layer</Text>
+          <Text style={[styles.label, { color: colors.text }]}>URL del Service Layer</Text>
           <TextInput
             placeholder="b1-service-layer.com"
             value={url}
             onChangeText={setUrl}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
             autoCapitalize="none"
+            placeholderTextColor={colors.text}
             editable={!loading && !deleting}
           />
           
-          <Text style={styles.label}>Puerto</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Puerto</Text>
           <TextInput
             placeholder="50000"
             value={port}
             onChangeText={setPort}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
             keyboardType="number-pad"
+            placeholderTextColor={colors.text}
             editable={!loading && !deleting}
           />
           
-          <Text style={styles.label}>Usuario</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Usuario</Text>
           <TextInput
             placeholder="Usuario"
             value={username}
             onChangeText={setUsername}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
             autoCapitalize="none"
+            placeholderTextColor={colors.text}
             editable={!loading && !deleting}
           />
           
-          <Text style={styles.label}>Contraseña</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Contraseña</Text>
           <TextInput
             placeholder="Contraseña (dejar en blanco para mantener la actual)"
             value={password}
             onChangeText={setPassword}
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
             secureTextEntry
+            placeholderTextColor={colors.text}
             editable={!loading && !deleting}
           />
           
-          <TouchableOpacity 
-            style={styles.actionButton}
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.primary }]}
             onPress={handleTestAndUpdateConnection}
             disabled={loading || deleting}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="white" />
+              <ActivityIndicator color="white" style={styles.loader} />
             ) : (
               <>
-                <MaterialIcons name="save" size={20} color="white" />
-                <Text style={styles.buttonText}>Probar y actualizar</Text>
+                <MaterialIcons name="save" size={24} color="white" />
+                <Text style={styles.buttonText}>Guardar cambios</Text>
               </>
             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.primary }]}
+            onPress={handleDeleteCompany}
+            disabled={loading}
+          >
+            <MaterialIcons name="delete" size={24} color="white" style={styles.deleteIcon} />
+            <Text style={styles.buttonText}>Eliminar compañía</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -416,7 +457,6 @@ export default function EditCompanyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
   },
   keyboardView: {
     flex: 1,
@@ -435,32 +475,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
-    color: '#333',
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 30,
     textAlign: 'center',
-    color: '#666',
   },
   label: {
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 6,
-    color: '#444',
   },
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
     fontSize: 16,
   },
   actionButton: {
-    backgroundColor: '#841584',
     borderRadius: 8,
     height: 50,
     flexDirection: 'row',
@@ -486,6 +520,8 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#757575',
+  },
+  loader: {
+    marginRight: 8,
   },
 }); 

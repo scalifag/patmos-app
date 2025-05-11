@@ -4,8 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { logout } from '@/auth/authService';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { RootStackParamList } from '@/navigation'; // Asegúrate de exportarlo en navigation/index.ts
-import { SettingsStackParamList } from '@/navigation/SettingsStack'; // Según dónde definas esto
+import { RootStackParamList } from '@/navigation'; 
+import { SettingsStackParamList } from '@/navigation/SettingsStack';
 import { useTheme } from '@/context/ThemeContext';
 
 type RootNav = StackNavigationProp<RootStackParamList>;

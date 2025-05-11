@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '@/context/ThemeContext';
 
 const mockCompanies = [
   { name: 'Base de datos de SAP 1', icon: '🏢' },
@@ -19,6 +20,7 @@ const mockCompanies = [
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const { colors } = useTheme();
   const [selectedCompany, setSelectedCompany] = useState(mockCompanies[0]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -36,18 +38,18 @@ export default function HomeScreen() {
           onPress={() => setModalVisible(true)}
         >
           <Text style={styles.companyIcon}>{selectedCompany.icon}</Text>
-          <Text style={styles.companyName} numberOfLines={1}>
+          <Text style={[styles.companyName, { color: colors.text }]} numberOfLines={1}>
             {selectedCompany.name}
           </Text>
-          <MaterialIcons name="expand-more" size={18} color="#444" />
+          <MaterialIcons name="expand-more" size={18} color={colors.text} />
         </TouchableOpacity>
       ),
     });
-  }, [navigation, selectedCompany]);
+  }, [navigation, selectedCompany, colors]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcomeText}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.welcomeText, { color: colors.text }]}>
         Bienvenido a la app de {selectedCompany.name}
       </Text>
 
@@ -59,8 +61,8 @@ export default function HomeScreen() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Seleccionar compañía</Text>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Seleccionar compañía</Text>
             <FlatList
               data={mockCompanies}
               keyExtractor={(item) => item.name}
@@ -68,12 +70,13 @@ export default function HomeScreen() {
                 <Pressable
                   style={({ pressed }) => [
                     styles.optionItem,
-                    pressed && { backgroundColor: '#f2f2f2' },
+                    { borderBottomColor: colors.border },
+                    pressed && { backgroundColor: colors.border },
                   ]}
                   onPress={() => handleSelectCompany(item)}
                 >
                   <Text style={styles.optionIcon}>{item.icon}</Text>
-                  <Text style={styles.optionText}>{item.name}</Text>
+                  <Text style={[styles.optionText, { color: colors.text }]}>{item.name}</Text>
                 </Pressable>
               )}
             />
@@ -81,7 +84,7 @@ export default function HomeScreen() {
               onPress={() => setModalVisible(false)}
               style={styles.cancelButton}
             >
-              <Text style={styles.cancelText}>Cancelar</Text>
+              <Text style={[styles.cancelText, { color: colors.primary }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -108,7 +111,6 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
     maxWidth: 300,
   },
   modalOverlay: {

@@ -13,8 +13,12 @@ import {
   SafeAreaView
 } from 'react-native';
 import { signUp } from '@/auth/authService';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '@/context/ThemeContext';
 
-export default function RegisterScreen({ navigation }: any) {
+export default function RegisterScreen() {
+  const navigation = useNavigation();
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -66,23 +70,28 @@ export default function RegisterScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollView}>
-          <Text style={styles.title}>Crear nueva cuenta</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Crear cuenta</Text>
           
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {error ? <Text style={[styles.errorText, { color: colors.text }]}>{error}</Text> : null}
           
           <TextInput
             placeholder="Correo electrónico"
             value={email}
             onChangeText={setEmail}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             keyboardType="email-address"
             autoCapitalize="none"
-            style={styles.input}
             editable={!loading}
           />
           
@@ -90,8 +99,13 @@ export default function RegisterScreen({ navigation }: any) {
             placeholder="Contraseña"
             value={password}
             onChangeText={setPassword}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             secureTextEntry
-            style={styles.input}
             editable={!loading}
           />
           
@@ -99,27 +113,32 @@ export default function RegisterScreen({ navigation }: any) {
             placeholder="Confirmar contraseña"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
+            style={[styles.input, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
+            placeholderTextColor={colors.text}
             secureTextEntry
-            style={styles.input}
             editable={!loading}
           />
           
-          {loading ? (
-            <ActivityIndicator size="large" color="#841584" style={styles.loader} />
-          ) : (
-            <TouchableOpacity 
-              style={styles.registerButton}
-              onPress={handleRegister}
-              disabled={loading}
-            >
+          <TouchableOpacity
+            style={[styles.registerButton, { backgroundColor: colors.primary }]}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" style={styles.loader} />
+            ) : (
               <Text style={styles.registerButtonText}>Registrarse</Text>
-            </TouchableOpacity>
-          )}
+            )}
+          </TouchableOpacity>
           
           <View style={styles.loginLink}>
-            <Text>¿Ya tienes una cuenta? </Text>
-            <TouchableOpacity onPress={() => navigation.replace('Login')}>
-              <Text style={styles.linkText}>Iniciar sesión</Text>
+            <Text style={{ color: colors.text }}>¿Ya tienes una cuenta? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={[styles.linkText, { color: colors.primary }]}>Iniciar sesión</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -131,7 +150,6 @@ export default function RegisterScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
   },
   keyboardView: {
     flex: 1,
@@ -146,20 +164,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: 'center',
-    color: '#333',
   },
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
     fontSize: 16,
   },
   registerButton: {
-    backgroundColor: '#841584',
     borderRadius: 8,
     height: 50,
     justifyContent: 'center',
@@ -175,10 +189,8 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   errorText: {
-    color: '#d32f2f',
     marginBottom: 15,
     textAlign: 'center',
-    backgroundColor: '#ffebee',
     padding: 10,
     borderRadius: 4,
   },
@@ -188,7 +200,6 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   linkText: {
-    color: '#841584',
     fontWeight: 'bold',
   }
 }); 

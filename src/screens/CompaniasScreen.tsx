@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -6,13 +6,15 @@ import {
   FlatList, 
   TouchableOpacity, 
   ActivityIndicator,
-  Alert
+  Alert,
+  RefreshControl
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { getCompanies, Company } from '@/utils/companyService';
 import { RootStackParamList } from '@/navigation';
+import { useTheme } from '@/context/ThemeContext';
 
 type CompaniasScreenNavigationProp = StackNavigationProp<
   RootStackParamList
@@ -21,6 +23,7 @@ type CompaniasScreenNavigationProp = StackNavigationProp<
 export default function CompaniasScreen() {
   const navigation = useNavigation<CompaniasScreenNavigationProp>();
   const isFocused = useIsFocused();
+  const { colors } = useTheme();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -94,10 +97,10 @@ export default function CompaniasScreen() {
     
     return (
       <TouchableOpacity 
-        style={styles.companyItem} 
+        style={[styles.companyItem, { backgroundColor: colors.card }]} 
         onPress={() => handleCompanyPress(item)}
       >
-        <View style={styles.companyIconContainer}>
+        <View style={[styles.companyIconContainer, { backgroundColor: colors.background }]}>
           <MaterialIcons 
             name="business" 
             size={28} 
@@ -106,9 +109,9 @@ export default function CompaniasScreen() {
         </View>
         
         <View style={styles.companyInfo}>
-          <Text style={styles.companyName}>{item.name}</Text>
-          <Text style={styles.companyDetail}>Base de datos: {item.databaseName}</Text>
-          <Text style={styles.companyDetail}>
+          <Text style={[styles.companyName, { color: colors.text }]}>{item.name}</Text>
+          <Text style={[styles.companyDetail, { color: colors.text }]}>Base de datos: {item.databaseName}</Text>
+          <Text style={[styles.companyDetail, { color: colors.text }]}>
             Última sincronización: {formattedDate}
           </Text>
         </View>
@@ -117,18 +120,18 @@ export default function CompaniasScreen() {
           <View style={[styles.statusIndicator, { 
             backgroundColor: item.isActive ? '#4CAF50' : '#9E9E9E' 
           }]} />
-          <MaterialIcons name="chevron-right" size={24} color="#BDBDBD" />
+          <MaterialIcons name="chevron-right" size={24} color={colors.text} />
         </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#841584" />
-          <Text style={styles.loadingText}>Cargando compañías...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.text }]}>Cargando compañías...</Text>
         </View>
       ) : (
         <FlatList
@@ -136,14 +139,14 @@ export default function CompaniasScreen() {
           renderItem={renderCompanyItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: colors.border }]} />}
           refreshing={refreshing}
           onRefresh={handleRefresh}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <MaterialIcons name="business-center" size={64} color="#BDBDBD" />
-              <Text style={styles.emptyText}>No hay compañías sincronizadas</Text>
-              <Text style={styles.emptySubtext}>
+              <MaterialIcons name="business-center" size={64} color={colors.text} />
+              <Text style={[styles.emptyText, { color: colors.text }]}>No hay compañías sincronizadas</Text>
+              <Text style={[styles.emptySubtext, { color: colors.text }]}>
                 Sincronice una compañía para comenzar
               </Text>
             </View>
@@ -157,13 +160,11 @@ export default function CompaniasScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
   },
   list: {
     padding: 16,
   },
   companyItem: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 16,
     flexDirection: 'row',
@@ -178,7 +179,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#f7e7f7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -189,12 +189,10 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 4,
   },
   companyDetail: {
     fontSize: 14,
-    color: '#757575',
     marginBottom: 2,
   },
   statusContainer: {
@@ -218,7 +216,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#757575',
   },
   emptyContainer: {
     flex: 1,
@@ -229,12 +226,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#757575',
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#9E9E9E',
     textAlign: 'center',
     marginTop: 8,
   },

@@ -225,6 +225,15 @@ export default function LoginScreen({ navigation }: any) {
               Regístrate
             </Text>
           </View>
+
+          <TouchableOpacity
+            style={styles.forgotPasswordContainer}
+            onPress={() => navigation.navigate('ResetPassword')}
+          >
+            <Text style={styles.forgotPasswordText}>
+              ¿Olvidaste tu contraseña?
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -313,5 +322,13 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     color: '#555',
-  }
+  },
+  forgotPasswordContainer: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    color: '#841584',
+    fontSize: 14,
+  },
 });

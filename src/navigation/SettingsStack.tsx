@@ -39,11 +39,7 @@ const Stack = createStackNavigator<SettingsStackParamList>();
 export default function SettingsStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name="Settings" 
-        component={SettingsScreen} 
-        options={{ title: '' }} 
-      />
+      <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: '' }} />
       <Stack.Screen name="Perfil" component={PerfilScreen} options={{ title: 'Perfil' }} />
       <Stack.Screen name="Companias" component={CompaniasScreen} options={{ title: 'Compañías' }} />
       <Stack.Screen name="Sincronizacion" component={SincronizacionScreen} options={{ title: 'Sincronización' }} />

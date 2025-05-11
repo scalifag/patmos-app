@@ -4,6 +4,8 @@ import 'react-native-get-random-values';
 import { createClient } from '@supabase/supabase-js';
 import { Alert } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { handleAuthStateChange } from '../auth/authEvents';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -36,81 +38,19 @@ const supabaseStorage = {
   },
 };
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-// Create the Supabase client with custom storage
-/*
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
+    storage: AsyncStorage,
     autoRefreshToken: true,
+    persistSession: true,
     detectSessionInUrl: false,
-    storage: supabaseStorage,
   },
-  global: {
-    fetch: (url, options) => {
-      // Añadimos timeout para evitar esperas indefinidas
-      const timeout = 15000; // 15 segundos de timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-      //console.log('Realizando fetch a:', url);
-
-      return fetch(url, {
-        ...options,
-        signal: controller.signal,
-        headers: {
-          ...options?.headers,
-          'Content-Type': 'application/json'
-        },
-      })
-        .then(response => {
-          clearTimeout(timeoutId);
-          //console.log('Respuesta recibida status:', response.status);
-          return response;
-        })
-        .catch(error => {
-          clearTimeout(timeoutId);
-          //console.error('Error en fetch:', error);
-          if (error.name === 'AbortError') {
-            throw new Error('La petición tomó demasiado tiempo en responder');
-          }
-          throw error;
-        });
-    }
-  }
 });
-*/
-// Authenticate with Supabase as an anonymous user if not already authenticated
-export const ensureAuthenticated = async (): Promise<boolean> => {
-  try {
-    // Check if already authenticated
-    const { data: sessionData } = await supabase.auth.getSession();
-    
-    if (sessionData.session) {
-      console.log('User already authenticated with Supabase');
-      return true;
-    }
-    
-    // Try anonymous sign-in
-    console.log('Attempting anonymous sign-in with Supabase');
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: process.env.EXPO_PUBLIC_SUPABASE_ANON_EMAIL || 'anonymous@example.com',
-      password: process.env.EXPO_PUBLIC_SUPABASE_ANON_PASSWORD || 'anonymous',
-    });
-    
-    if (error) {
-      console.error('Failed to sign in anonymously:', error);
-      return false;
-    }
-    
-    console.log('Successfully signed in anonymously with Supabase');
-    return true;
-  } catch (error) {
-    console.error('Error ensuring authentication:', error);
-    return false;
-  }
-};
+
+// Configurar el listener de cambios de autenticación
+supabase.auth.onAuthStateChange((event, session) => {
+  handleAuthStateChange(supabase, event, session);
+});
 
 // Generate or get device ID for anonymous usage (as a valid UUID)
 const getDeviceId = async (): Promise<string> => {

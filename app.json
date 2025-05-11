@@ -2,6 +2,7 @@
   "expo": {
     "name": "Patmos",
     "slug": "patmos",
+    "scheme": "patmos",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

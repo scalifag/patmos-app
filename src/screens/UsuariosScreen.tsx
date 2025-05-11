@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,17 @@ import {
   TouchableOpacity,
   ActionSheetIOS,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 import { useNavigation } from '@react-navigation/native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
+import { getCompanyUsers, CompanyUser, updateUserStatus } from '@/services/userService';
+import InviteUserModal from '@/components/InviteUserModal';
 
+const COMPANY_ID = 'a646eaaf-e3af-4968-b6d8-99938460bf00';
 
 type UserItem = {
   key: string;
@@ -28,70 +32,38 @@ type SectionData = {
   data: UserItem[];
 };
 
-const originalUsers: SectionData[] = [
-  {
-    title: 'Usuarios Activos',
-    data: [
-      {
-        key: 'u1',
-        name: 'María López',
-        subtitle: 'Admin',
-        icon: <Ionicons name="person-circle" size={24} />,
-        lastActive: new Date(),
-      },
-      {
-        key: 'u2',
-        name: 'Carlos Pérez',
-        subtitle: 'Vendedor',
-        icon: <Ionicons name="person-circle-outline" size={24} />,
-        lastActive: new Date(Date.now() - 3600 * 1000 * 5),
-      },
-    ],
-  },
-  {
-    title: 'Usuarios Inactivos',
-    data: [
-      {
-        key: 'i1',
-        name: 'Ana Torres',
-        subtitle: 'Fecha de inactivación: 2023-02-15',
-        icon: <MaterialIcons name="person-off" size={24} />,
-        lastActive: new Date(Date.now() - 3600 * 1000 * 24),
-      },
-    ],
-  },
-  {
-    title: 'Roles Disponibles',
-    data: [
-      {
-        key: 'r1',
-        name: 'Administrador',
-        subtitle: 'Acceso completo',
-        icon: <MaterialIcons name="admin-panel-settings" size={24} />,
-      },
-      {
-        key: 'r2',
-        name: 'Vendedor',
-        subtitle: 'Solo ventas',
-        icon: <MaterialIcons name="store" size={24} />,
-      },
-    ],
-  },
-];
-
 export default function UsuariosScreen() {
   const navigation = useNavigation();
   const [filter, setFilter] = useState<'Todos' | 'Activos' | 'Inactivos' | 'Roles'>('Todos');
-
-  const filteredUsers = originalUsers.filter((section) => {
-    if (filter === 'Todos') return true;
-    if (filter === 'Activos') return section.title === 'Usuarios Activos';
-    if (filter === 'Inactivos') return section.title === 'Usuarios Inactivos';
-    if (filter === 'Roles') return section.title === 'Roles Disponibles';
-    return false;
-  });
-
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<CompanyUser[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
   const { showActionSheetWithOptions } = useActionSheet();
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const companyUsers = await getCompanyUsers(COMPANY_ID);
+      setUsers(companyUsers);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUserAction = async (userId: string, isActive: boolean) => {
+    try {
+      await updateUserStatus(userId, isActive);
+      await loadUsers();
+    } catch (error) {
+      console.error('Error updating user status:', error);
+    }
+  };
 
   const handleFilterPress = () => {
     const options = ['Todos', 'Activos', 'Inactivos', 'Roles', 'Cancelar'];
@@ -113,7 +85,27 @@ export default function UsuariosScreen() {
       }
     );
   };
-  
+
+  const handleUserOptions = (user: CompanyUser) => {
+    const options = [
+      user.is_active ? 'Desactivar usuario' : 'Activar usuario',
+      'Cancelar',
+    ];
+    const cancelButtonIndex = 1;
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        title: 'Opciones de usuario',
+      },
+      async (selectedIndex) => {
+        if (typeof selectedIndex === 'number' && selectedIndex !== cancelButtonIndex) {
+          await handleUserAction(user.id, !user.is_active);
+        }
+      }
+    );
+  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -126,10 +118,52 @@ export default function UsuariosScreen() {
     });
   }, [navigation, filter]);
 
+  const sections: SectionData[] = [
+    {
+      title: 'Usuarios Activos',
+      data: users
+        .filter(user => user.is_active)
+        .map(user => ({
+          key: user.id,
+          name: `${user.first_name} ${user.last_name}`,
+          subtitle: user.sap_employee_code || 'Sin código SAP',
+          icon: <Ionicons name="person-circle" size={24} color="#841584" />,
+          lastActive: new Date(user.updated_at),
+        })),
+    },
+    {
+      title: 'Usuarios Inactivos',
+      data: users
+        .filter(user => !user.is_active)
+        .map(user => ({
+          key: user.id,
+          name: `${user.first_name} ${user.last_name}`,
+          subtitle: user.sap_employee_code || 'Sin código SAP',
+          icon: <MaterialIcons name="person-off" size={24} color="#666" />,
+          lastActive: new Date(user.updated_at),
+        })),
+    },
+  ];
+
+  const filteredSections = sections.filter((section) => {
+    if (filter === 'Todos') return true;
+    if (filter === 'Activos') return section.title === 'Usuarios Activos';
+    if (filter === 'Inactivos') return section.title === 'Usuarios Inactivos';
+    return false;
+  });
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#841584" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <SectionList
-        sections={filteredUsers}
+        sections={filteredSections}
         keyExtractor={(item) => item.key}
         renderItem={({ item }) => (
           <View style={styles.itemContainer}>
@@ -146,7 +180,7 @@ export default function UsuariosScreen() {
                 </Text>
               )}
             </View>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => handleUserOptions(users.find(u => u.id === item.key)!)}>
               <Ionicons name="ellipsis-horizontal" size={20} color="#aaa" />
             </TouchableOpacity>
           </View>
@@ -156,6 +190,20 @@ export default function UsuariosScreen() {
         )}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16 }}
       />
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setModalVisible(true)}
+      >
+        <Ionicons name="add" size={24} color="white" />
+      </TouchableOpacity>
+
+      <InviteUserModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSuccess={loadUsers}
+        companyId={COMPANY_ID}
+      />
     </View>
   );
 }
@@ -164,6 +212,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionHeader: {
     fontSize: 18,
@@ -197,5 +250,24 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     marginRight: 16,
+  },
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    backgroundColor: '#841584',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });

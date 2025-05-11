@@ -6,6 +6,7 @@ import { logout } from '@/auth/authService';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/navigation'; // Asegúrate de exportarlo en navigation/index.ts
 import { SettingsStackParamList } from '@/navigation/SettingsStack'; // Según dónde definas esto
+import { useTheme } from '@/context/ThemeContext';
 
 type RootNav = StackNavigationProp<RootStackParamList>;
 type SettingsNav = StackNavigationProp<SettingsStackParamList>;
@@ -27,6 +28,7 @@ type SettingSection = {
 export default function SettingsScreen() {
   const rootNavigation = useNavigation<RootNav>();
   const settingsNavigation = useNavigation<SettingsNav>();
+  const { isDarkMode, toggleDarkMode, colors } = useTheme();
   const [pushNotifications, setPushNotifications] = useState(false);
 
   const handleLogout = async () => {
@@ -84,13 +86,20 @@ export default function SettingsScreen() {
           value: pushNotifications,
           onToggle: setPushNotifications
         },
+        { 
+          title: 'Modo Oscuro', 
+          icon: 'brightness-4', 
+          toggle: true,
+          value: isDarkMode,
+          onToggle: toggleDarkMode
+        },
       ]
     }
   ];
 
   const renderItem = ({ item }: { item: SettingItem }) => (
     <TouchableOpacity 
-      style={styles.option} 
+      style={[styles.option, { backgroundColor: colors.card }]} 
       onPress={item.toggle ? undefined : () => {
         if (item.screen) {
           settingsNavigation.navigate(item.screen as any, {});
@@ -98,42 +107,44 @@ export default function SettingsScreen() {
       }}
       disabled={item.toggle}
     >
-      <MaterialIcons name={item.icon as any} size={24} color="#555" />
-      <Text style={styles.optionText}>{item.title}</Text>
+      <MaterialIcons name={item.icon as any} size={24} color={colors.text} />
+      <Text style={[styles.optionText, { color: colors.text }]}>{item.title}</Text>
       
       {item.toggle ? (
         <Switch
           value={item.value}
           onValueChange={item.onToggle}
+          trackColor={{ false: '#d0d0d0', true: '#a06ba5' }}
+          thumbColor={item.value ? '#841584' : '#f4f3f4'}
         />
       ) : (
-        <MaterialIcons name="chevron-right" size={24} color="#aaa" />
+        <MaterialIcons name="chevron-right" size={24} color={colors.text} />
       )}
     </TouchableOpacity>
   );
 
   const renderProfileItem = ({ item }: { item: SettingItem }) => (
     <TouchableOpacity 
-      style={styles.profileOption} 
+      style={[styles.profileOption, { backgroundColor: colors.card }]} 
       onPress={() => settingsNavigation.navigate(item.screen as any)}
     >
-      <View style={styles.profileImageContainer}>
+      <View style={[styles.profileImageContainer, { borderColor: colors.border }]}>
         <Image 
           source={{ uri: 'https://via.placeholder.com/60' }} 
           style={styles.profileImage} 
         />
       </View>
       <View style={styles.profileTextContainer}>
-        <Text style={styles.profileName}>Steven Califa</Text>
-        <Text style={styles.profileEmail}>steven.califa@solsetec.com.co</Text>
+        <Text style={[styles.profileName, { color: colors.text }]}>Steven Califa</Text>
+        <Text style={[styles.profileEmail, { color: colors.text }]}>steven.califa@solsetec.com.co</Text>
       </View>
-      <MaterialIcons name="chevron-right" size={24} color="#aaa" />
+      <MaterialIcons name="chevron-right" size={24} color={colors.text} />
     </TouchableOpacity>
   );
 
   const renderSectionHeader = ({ section }: { section: SettingSection }) => (
     section.title ? (
-      <Text style={styles.sectionTitle}>{section.title}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{section.title}</Text>
     ) : null
   );
 
@@ -141,14 +152,19 @@ export default function SettingsScreen() {
     settingsNavigation.setOptions({
       headerRight: () => (
         <TouchableOpacity onPress={handleLogout} style={{ marginRight: 16 }}>
-          <Ionicons name="log-out-outline" size={24} color="#000" />
+          <Ionicons name="log-out-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       ),
+      headerStyle: {
+        backgroundColor: colors.card,
+        borderBottomColor: colors.border,
+      },
+      headerTintColor: colors.text,
     });
-  }, [settingsNavigation]);
+  }, [settingsNavigation, colors]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SectionList
         sections={settingsSections}
         keyExtractor={(item, index) => item.title + index}
@@ -159,7 +175,7 @@ export default function SettingsScreen() {
           return renderItem({ item });
         }}
         renderSectionHeader={renderSectionHeader}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: colors.border }]} />}
         SectionSeparatorComponent={() => <View style={styles.sectionSeparator} />}
         stickySectionHeadersEnabled={false}
       />
@@ -167,33 +183,31 @@ export default function SettingsScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginVertical: 12,
-    color: '#666',
   },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   optionText: {
     flex: 1,
     fontSize: 16,
     marginLeft: 16,
-    color: '#333',
   },
   separator: {
     height: 1,
-    backgroundColor: '#eee',
+    marginVertical: 8,
   },
   sectionSeparator: {
     height: 10,
@@ -202,6 +216,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   profileImageContainer: {
     width: 60,
@@ -209,7 +225,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: '#f0f0f0',
   },
   profileImage: {
     width: '100%',
@@ -222,22 +237,9 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   profileEmail: {
     fontSize: 14,
-    color: '#777',
     marginTop: 2,
-  },
-  logoutButton: {
-    backgroundColor: '#f44336',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  logoutText: {
-    color: 'white',
-    fontWeight: 'bold',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, SectionList, Switch, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -7,6 +7,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/navigation'; 
 import { SettingsStackParamList } from '@/navigation/SettingsStack';
 import { useTheme } from '@/context/ThemeContext';
+import { supabase } from '@/api/supabaseClient';
 
 type RootNav = StackNavigationProp<RootStackParamList>;
 type SettingsNav = StackNavigationProp<SettingsStackParamList>;
@@ -25,11 +26,50 @@ type SettingSection = {
   data: SettingItem[];
 };
 
+type UserProfile = {
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
 export default function SettingsScreen() {
   const rootNavigation = useNavigation<RootNav>();
   const settingsNavigation = useNavigation<SettingsNav>();
   const { isDarkMode, toggleDarkMode, colors } = useTheme();
   const [pushNotifications, setPushNotifications] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData, error } = await supabase
+        .from('company_users')
+        .select('first_name, last_name, email')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+
+      if (userData) {
+        setUserProfile({
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+          email: userData.email
+        });
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -135,8 +175,12 @@ export default function SettingsScreen() {
         />
       </View>
       <View style={styles.profileTextContainer}>
-        <Text style={[styles.profileName, { color: colors.text }]}>Steven Califa</Text>
-        <Text style={[styles.profileEmail, { color: colors.text }]}>steven.califa@solsetec.com.co</Text>
+        <Text style={[styles.profileName, { color: colors.text }]}>
+          {userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'Cargando...'}
+        </Text>
+        <Text style={[styles.profileEmail, { color: colors.text }]}>
+          {userProfile?.email || 'Cargando...'}
+        </Text>
       </View>
       <MaterialIcons name="chevron-right" size={24} color={colors.text} />
     </TouchableOpacity>

@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,24 +7,41 @@ import {
   TouchableOpacity,
   FlatList,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '@/context/ThemeContext';
-
-const mockCompanies = [
-  { name: 'Base de datos de SAP 1', icon: '🏢' },
-  { name: 'Base de datos de SAP 2', icon: '🏬' },
-  { name: 'Base de datos de SAP 3', icon: '🏭' },
-];
+import { getCompanies, Company } from '@/utils/companyService';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const [selectedCompany, setSelectedCompany] = useState(mockCompanies[0]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSelectCompany = (company: typeof mockCompanies[0]) => {
+  useEffect(() => {
+    loadCompanies();
+  }, []);
+
+  const loadCompanies = async () => {
+    try {
+      setLoading(true);
+      const fetchedCompanies = await getCompanies();
+      setCompanies(fetchedCompanies);
+      if (fetchedCompanies.length > 0 && !selectedCompany) {
+        setSelectedCompany(fetchedCompanies[0]);
+      }
+    } catch (error) {
+      console.error('Error loading companies:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectCompany = (company: Company) => {
     setSelectedCompany(company);
     setModalVisible(false);
   };
@@ -37,21 +54,41 @@ export default function HomeScreen() {
           style={styles.headerCompanyButton}
           onPress={() => setModalVisible(true)}
         >
-          <Text style={styles.companyIcon}>{selectedCompany.icon}</Text>
-          <Text style={[styles.companyName, { color: colors.text }]} numberOfLines={1}>
-            {selectedCompany.name}
-          </Text>
-          <MaterialIcons name="expand-more" size={18} color={colors.text} />
+          {selectedCompany ? (
+            <>
+              <Text style={styles.companyIcon}>🏢</Text>
+              <Text style={[styles.companyName, { color: colors.text }]} numberOfLines={1}>
+                {selectedCompany.name}
+              </Text>
+              <MaterialIcons name="expand-more" size={18} color={colors.text} />
+            </>
+          ) : (
+            <Text style={[styles.companyName, { color: colors.text }]}>Seleccionar compañía</Text>
+          )}
         </TouchableOpacity>
       ),
     });
   }, [navigation, selectedCompany, colors]);
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.welcomeText, { color: colors.text }]}>
-        Bienvenido a la app de {selectedCompany.name}
-      </Text>
+      {selectedCompany ? (
+        <Text style={[styles.welcomeText, { color: colors.text }]}>
+          Bienvenido a la app de {selectedCompany.name}
+        </Text>
+      ) : (
+        <Text style={[styles.welcomeText, { color: colors.text }]}>
+          No hay compañías disponibles
+        </Text>
+      )}
 
       {/* Modal para seleccionar compañía */}
       <Modal
@@ -64,8 +101,8 @@ export default function HomeScreen() {
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Seleccionar compañía</Text>
             <FlatList
-              data={mockCompanies}
-              keyExtractor={(item) => item.name}
+              data={companies}
+              keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <Pressable
                   style={({ pressed }) => [
@@ -75,7 +112,7 @@ export default function HomeScreen() {
                   ]}
                   onPress={() => handleSelectCompany(item)}
                 >
-                  <Text style={styles.optionIcon}>{item.icon}</Text>
+                  <Text style={styles.optionIcon}>🏢</Text>
                   <Text style={[styles.optionText, { color: colors.text }]}>{item.name}</Text>
                 </Pressable>
               )}
